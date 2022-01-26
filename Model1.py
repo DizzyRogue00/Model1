@@ -158,7 +158,11 @@ class Model1(object):
             phi = m.addVars(index_1, name='phi')
             alight = m.addVars(index_4, name='alight')
             w = m.addVars(index_1, name='w')
+
             t_bar = m.addVars(range(1, self.N + 1), name='t_tar')
+            #arrival_bar=m.addVars(range(2,self.N+1),name='arrival_bar')
+            #tau_bar=m.addVars(range(2,self.N+1),name='tau_bar')
+
             tau = m.addVars(index_2, name='tau')
             in_vehicle_waiting = m.addVar(name='in_vehicle_waiting')
             at_stop_waiting = m.addVar(name='at_stop_waiting')
@@ -178,7 +182,7 @@ class Model1(object):
                 range(1, self.N + 1))
             item3 = item3 + gp.quicksum(w[self.M, y] * (t_bar[y] - departure[self.M, y]) for y in range(1, self.N + 1))
 
-            m.setObjective(item1 + item2 + item3, sense=gp.GRB.MINIMIZE)
+            m.setObjective(self.theta[0]*item1 + self.theta[1]*item2 + self.theta[2]*item3, sense=gp.GRB.MINIMIZE)
 
             m.addConstr(in_vehicle_waiting == item2, name='in_vehicle_c')
             m.addConstr(at_stop_waiting == item1, name='at_stop_c')
@@ -211,9 +215,15 @@ class Model1(object):
             m.addConstrs((board[x, y] == phi[x, y] - w[x, y] for x, y in index_1), name='factual_board')
             m.addConstrs((tau[x, y] == board[x, y] * self.boarding_rate / 60 for x, y in index_2), name='duration')
 
+            #m.addConstr(t_bar[1]==self.headway*(self.M+1),name='t_depart_1')
+            #m.addConstrs((t_bar[y]==t_bar[y-1]+self.ll[y-2]/self.v[y-2]+tau_bar[y] for y in range(2,self.N+1)),name='t_depart')
+            #m.addConstrs((arrival_bar[y]==t_bar[y-1]+self.ll[y-2]/self.v[y-2] for y in range(2,self.N+1)),name='t_arrival')
+            #m.addConstrs((arrival_bar[y]-arrival[self.M,y]>=0 for y in range(2,self.N+1)),name='t_overtaking')
+            #m.addConstrs((tau_bar[y]==w[self.M,y]*self.boarding_rate/60 for y in range(2,self.N+1)),name='t_boarding')
+
             m.optimize()
             if m.status == GRB.OPTIMAL:
-                print('OK')
+                #print('OK')
                 self.objVal=m.objVal
                 self.result = m.getAttr('x', [in_vehicle_waiting,at_stop_waiting,extra_waiting])
                 self.departure = m.getAttr('x', departure)
@@ -237,7 +247,7 @@ class Model1(object):
                 print('alight:',self.alight)
                 print(self.t_bar)
                 #return self.result, self.departure, self.arrival, self.in_vehicle, self.w
-                return self.objVal,self.result
+                return self.objVal,self.result,self.departure,self.arrival,self.in_vehicle_j,self.in_vehicle,self.board,self.w,self.phi,self.tau,self.alight,self.t_bar
 
         except gp.GurobiError as e:
             print('Error code' + str(e.errno) + ': ' + str(e))
