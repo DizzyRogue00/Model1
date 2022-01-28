@@ -81,17 +81,17 @@ class Model1(object):
 
     @property
     def p(self):
-        temp = [(x, y, z) for x in range(1, self.M + 1) for y in range(1, self.N+1) for z in range(y + 1, self.N + 2)]
+        temp = [(x, y, z) for x in range(1, self.M + 1) for y in range(1, self.N + 1) for z in range(y + 1, self.N + 2)]
         temp = tuplelist(temp)
         loc = 0
         temp_ = {}
-        for y in range(1, self.N+1):
+        for y in range(1, self.N + 1):
             m = np.array(list(range(y + 1, self.N + 2))) / 10
             m = st.lognorm.pdf(m, 1, loc=loc, scale=1)
             m = m / m.sum()
             i = 0
             for z in range(y + 1, self.N + 2):
-                temp_dict = {ii: m[i]/m[i:].sum() for ii in temp.select('*', y, z)}
+                temp_dict = {ii: m[i] / m[i:].sum() for ii in temp.select('*', y, z)}
                 temp_.update(temp_dict)
                 i += 1
             loc += 0.1
@@ -136,24 +136,26 @@ class Model1(object):
 
     @property
     def t_bar(self):
-        temp1=np.array(self.ll)
-        temp2=np.array(self.v)
-        temp3=temp1/temp2
-        self._t_bar=[(self.M+1)*self.headway+temp3[:j-1].sum()+j-1 for j in range(1,self.N+1)]
+        temp1 = np.array(self.ll)
+        temp2 = np.array(self.v)
+        temp3 = temp1 / temp2
+        self._t_bar = [(self.M + 1) * self.headway + temp3[:j - 1].sum() + j - 1 for j in range(1, self.N + 1)]
         return self._t_bar
+
     @t_bar.setter
-    def t_bar(self,value):
-        if not isinstance(value,list):
+    def t_bar(self, value):
+        if not isinstance(value, list):
             raise ValueError('t_bar must be a list')
-        if len(value) !=self.N:
+        if len(value) != self.N:
             raise ValueError(f'The length must equal to {self.N}')
-        self._t_bar=value
+        self._t_bar = value
         return self._t_bar
 
     def Optimal(self):
         try:
             m = gp.Model('bus_original')
-            m.setParam('nonconvex',2)
+            m.Params.timeLimit = 100
+            m.setParam('nonconvex', 2)
             # departure1=m.addVar(lb=0.0,ub=GRB.INFINITY,vtype=GRB.CONTINUOUS,name='departure1')
             # index_1=gp.tuplelist([x,y] for x in range(1,self.M+1) for y in range(self._e_i[x-1]+1,self.N+1))
             # index_arrival=gp.tuplelist([x,y] for x in range(1,self.M+1) for y in range(self._e_i[x-1]+1,self.N+1))
@@ -163,8 +165,8 @@ class Model1(object):
             index_3 = gp.tuplelist(
                 [(x, y, z) for x in range(1, self.M + 1) for z in range(2, self.N + 2) for y in range(1, z)])
             index_4 = gp.tuplelist([(x, y) for x in range(1, self.M + 1) for y in range(2, self.N + 2)])
-            #index_5 = gp.tuplelist([(x, y) for x in range(1, self.M + 1) for y in range(2, self.N + 2)])
-            #index_6 = gp.tuplelist([(x, y) for x in range(1, self.M + 1) for y in range(2, self.N + 1)])
+            # index_5 = gp.tuplelist([(x, y) for x in range(1, self.M + 1) for y in range(2, self.N + 2)])
+            # index_6 = gp.tuplelist([(x, y) for x in range(1, self.M + 1) for y in range(2, self.N + 1)])
 
             departure = m.addVars(index_1, name='departure')
             arrival = m.addVars(index_2, name='arrival')
@@ -174,10 +176,10 @@ class Model1(object):
             phi = m.addVars(index_1, name='phi')
             alight = m.addVars(index_4, name='alight')
             w = m.addVars(index_1, name='w')
-            #t_bar = m.addVars(range(1, self.N + 1), name='t_tar')
+            # t_bar = m.addVars(range(1, self.N + 1), name='t_tar')
 
-            #arrival_bar=m.addVars(range(2,self.N+1),name='arrival_bar')
-            #tau_bar=m.addVars(range(2,self.N+1),name='tau_bar')
+            # arrival_bar=m.addVars(range(2,self.N+1),name='arrival_bar')
+            # tau_bar=m.addVars(range(2,self.N+1),name='tau_bar')
 
             tau = m.addVars(index_2, name='tau')
             in_vehicle_waiting = m.addVar(name='in_vehicle_waiting')
@@ -188,22 +190,25 @@ class Model1(object):
             # lhs=LinExpr(0)
             item1 = gp.quicksum(
                 (departure[x, y] - departure[x - 1, y]) * (departure[x, y] - departure[x - 1, y]) * self.lambda_[
-                    y - 1] / 2 for x in range(2, self.M+1) for y in range(1, self.N + 1))
+                    y - 1] / 2 for x in range(2, self.M + 1) for y in range(1, self.N + 1))
             item1 = item1 + gp.quicksum(
                 self.lambda_[y - 1] / 2 * departure[1, y] * departure[1, y] for y in range(1, self.N + 1))
-            item1=item1+gp.quicksum(self.lambda_[y-1]/2*(self.t_bar[y-1]-departure[self.M,y])*(self.t_bar[y-1]-departure[self.M,y]) for y in range(1,self.N+1))
-            #item2 = gp.quicksum(
+            item1 = item1 + gp.quicksum(self.lambda_[y - 1] / 2 * (self.t_bar[y - 1] - departure[self.M, y]) * (
+                    self.t_bar[y - 1] - departure[self.M, y]) for y in range(1, self.N + 1))
+            # item2 = gp.quicksum(
             #    in_vehicle[x, y + 1] * tau[x, y] for x in range(1, self.M + 1) for y in range(2, self.N + 1))
 
-            item2=gp.quicksum(
-                (in_vehicle[x,y+1]-in_vehicle_j.prod(self.p,x,'*',y+1))*tau[x,y+1] for x in range(1,self.M+1) for y in range(1,self.N))
+            item2 = gp.quicksum(
+                (in_vehicle[x, y + 1] - in_vehicle_j.prod(self.p, x, '*', y + 1)) * tau[x, y + 1] for x in
+                range(1, self.M + 1) for y in range(1, self.N))
 
             item3 = gp.quicksum(
-                w[x, y] * (departure[x+1, y] - departure[x, y]) for x in range(1, self.M) for y in
+                w[x, y] * (departure[x + 1, y] - departure[x, y]) for x in range(1, self.M) for y in
                 range(1, self.N + 1))
-            item3 = item3 + gp.quicksum(w[self.M, y] * (self.t_bar[y-1] - departure[self.M, y]) for y in range(1, self.N + 1))
+            item3 = item3 + gp.quicksum(
+                w[self.M, y] * (self.t_bar[y - 1] - departure[self.M, y]) for y in range(1, self.N + 1))
 
-            m.setObjective(self.theta[0]*item1 + self.theta[1]*item2 + self.theta[2]*item3, sense=gp.GRB.MINIMIZE)
+            m.setObjective(self.theta[0] * item1 + self.theta[1] * item2 + self.theta[2] * item3, sense=gp.GRB.MINIMIZE)
 
             m.addConstr(in_vehicle_waiting == item2, name='in_vehicle_c')
             m.addConstr(at_stop_waiting == item1, name='at_stop_c')
@@ -216,7 +221,8 @@ class Model1(object):
             m.addConstrs((arrival[x, y] == departure[x, y - 1] + self.ll[y - 2] / self.v[y - 2] for x, y in index_2),
                          name='arri')
             m.addConstrs(
-                (in_vehicle_j[x, y, z] == in_vehicle_j[x, y, z - 1] * (1 - self.p[x, y, z - 1]) for x, y, z in index_3 if y != z - 1), name='in_j')
+                (in_vehicle_j[x, y, z] == in_vehicle_j[x, y, z - 1] * (1 - self.p[x, y, z - 1]) for x, y, z in index_3
+                 if y != z - 1), name='in_j')
             m.addConstrs((in_vehicle_j[x, y, z] == board[x, y] for x, y, z in index_3 if z == y + 1), name='in_')
             m.addConstrs((in_vehicle[x, y] == in_vehicle_j.sum(x, '*', y) for x, y in index_2), name='inTotal')
             m.addConstrs((phi[1, y] == self.lambda_[y - 1] * departure[1, y] for y in range(1, self.N + 1)),
@@ -232,43 +238,98 @@ class Model1(object):
             m.addConstrs((departure[x, y] - departure[x - 1, y] >= 0 for x, y in index_1 if x != 1),
                          name='overtakeing_n_1')
             m.addConstrs((arrival[x, y] - arrival[x - 1, y] >= 0 for x, y in index_2 if x != 1), name='overtakeing_n_2')
-            m.addConstrs((self.t_bar[y-1] - departure[self.M, y] >= 0 for y in range(1, self.N + 1)), name='virtual')
+            m.addConstrs((self.t_bar[y - 1] - departure[self.M, y] >= 0 for y in range(1, self.N + 1)), name='virtual')
             m.addConstrs((board[x, y] == phi[x, y] - w[x, y] for x, y in index_1), name='factual_board')
             m.addConstrs((tau[x, y] == board[x, y] * self.boarding_rate / 60 for x, y in index_2), name='duration')
 
-            #m.addConstr(t_bar[1]==self.headway*(self.M+1),name='t_depart_1')
-            #m.addConstrs((t_bar[y]==t_bar[y-1]+self.ll[y-2]/self.v[y-2]+tau_bar[y] for y in range(2,self.N+1)),name='t_depart')
-            #m.addConstrs((arrival_bar[y]==t_bar[y-1]+self.ll[y-2]/self.v[y-2] for y in range(2,self.N+1)),name='t_arrival')
-            #m.addConstrs((arrival_bar[y]-arrival[self.M,y]>=0 for y in range(2,self.N+1)),name='t_overtaking')
-            #m.addConstrs((tau_bar[y]==w[self.M,y]*self.boarding_rate/60 for y in range(2,self.N+1)),name='t_boarding')
+            # m.addConstr(t_bar[1]==self.headway*(self.M+1),name='t_depart_1')
+            # m.addConstrs((t_bar[y]==t_bar[y-1]+self.ll[y-2]/self.v[y-2]+tau_bar[y] for y in range(2,self.N+1)),name='t_depart')
+            # m.addConstrs((arrival_bar[y]==t_bar[y-1]+self.ll[y-2]/self.v[y-2] for y in range(2,self.N+1)),name='t_arrival')
+            # m.addConstrs((arrival_bar[y]-arrival[self.M,y]>=0 for y in range(2,self.N+1)),name='t_overtaking')
+            # m.addConstrs((tau_bar[y]==w[self.M,y]*self.boarding_rate/60 for y in range(2,self.N+1)),name='t_boarding')
 
             m.optimize()
             if m.status == GRB.OPTIMAL:
-                #print('OK')
-                self.objVal=m.objVal
-                self.result = m.getAttr('x', [in_vehicle_waiting,at_stop_waiting,extra_waiting])
+                print(m.status)
+                self.objVal = m.objVal
+                self.result = m.getAttr('x', [in_vehicle_waiting, at_stop_waiting, extra_waiting])
                 self.departure = m.getAttr('x', departure)
                 self.arrival = m.getAttr('x', arrival)
                 self.in_vehicle_j = m.getAttr('x', in_vehicle_j)
                 self.in_vehicle = m.getAttr('x', in_vehicle)
-                self.board=m.getAttr('x',board)
+                self.board = m.getAttr('x', board)
                 self.w = m.getAttr('x', w)
-                self.phi=m.getAttr('x',phi)
-                self.tau=m.getAttr('x',tau)
-                self.alight=m.getAttr('x',alight)
-                #self.t_bar=m.getAttr('x',self.t_bar)
+                self.phi = m.getAttr('x', phi)
+                self.tau = m.getAttr('x', tau)
+                self.alight = m.getAttr('x', alight)
+                # self.t_bar=m.getAttr('x',self.t_bar)
                 print(self.departure)
                 print(self.arrival)
                 print(self.in_vehicle_j)
                 print(self.in_vehicle)
-                print('board:',self.board)
+                print('board:', self.board)
                 print(self.w)
                 print(self.phi)
                 print(self.tau)
-                print('alight:',self.alight)
-                #print(self.t_bar)
-                #return self.result, self.departure, self.arrival, self.in_vehicle, self.w
-                return self.objVal,self.result,self.departure,self.arrival,self.in_vehicle_j,self.in_vehicle,self.board,self.w,self.phi,self.tau,self.alight
+                print('alight:', self.alight)
+                # print(self.t_bar)
+                # return self.result, self.departure, self.arrival, self.in_vehicle, self.w
+                # return self.objVal,self.result,self.departure,self.arrival,self.in_vehicle_j,self.in_vehicle,self.board,self.w,self.phi,self.tau,self.alight
+            elif m.status == GRB.TIME_LIMIT:
+                # m.Params.timeLimit=float("inf")
+                m.Params.timeLimit = 200
+                if m.MIPGap <= 0.05:
+                    print(m.status)
+                    print(m.MIPGap)
+                    self.objVal = m.objVal
+                    self.result = m.getAttr('x', [in_vehicle_waiting, at_stop_waiting, extra_waiting])
+                    self.departure = m.getAttr('x', departure)
+                    self.arrival = m.getAttr('x', arrival)
+                    self.in_vehicle_j = m.getAttr('x', in_vehicle_j)
+                    self.in_vehicle = m.getAttr('x', in_vehicle)
+                    self.board = m.getAttr('x', board)
+                    self.w = m.getAttr('x', w)
+                    self.phi = m.getAttr('x', phi)
+                    self.tau = m.getAttr('x', tau)
+                    self.alight = m.getAttr('x', alight)
+                    # self.t_bar=m.getAttr('x',self.t_bar)
+                    print(self.departure)
+                    print(self.arrival)
+                    print(self.in_vehicle_j)
+                    print(self.in_vehicle)
+                    print('board:', self.board)
+                    print(self.w)
+                    print(self.phi)
+                    print(self.tau)
+                    print('alight:', self.alight)
+                else:
+                    m.Params.MIPGap = 0.05
+                    m.optimize()
+                    print("OK")
+                    print(m.status)
+                    self.objVal = m.objVal
+                    self.result = m.getAttr('x', [in_vehicle_waiting, at_stop_waiting, extra_waiting])
+                    self.departure = m.getAttr('x', departure)
+                    self.arrival = m.getAttr('x', arrival)
+                    self.in_vehicle_j = m.getAttr('x', in_vehicle_j)
+                    self.in_vehicle = m.getAttr('x', in_vehicle)
+                    self.board = m.getAttr('x', board)
+                    self.w = m.getAttr('x', w)
+                    self.phi = m.getAttr('x', phi)
+                    self.tau = m.getAttr('x', tau)
+                    self.alight = m.getAttr('x', alight)
+                    # self.t_bar=m.getAttr('x',self.t_bar)
+                    print(self.departure)
+                    print(self.arrival)
+                    print(self.in_vehicle_j)
+                    print(self.in_vehicle)
+                    print('board:', self.board)
+                    print(self.w)
+                    print(self.phi)
+                    print(self.tau)
+                    print('alight:', self.alight)
+            return self.objVal, self.result, self.departure, self.arrival, self.in_vehicle_j, self.in_vehicle, self.board, self.w, self.phi, self.tau, self.alight
+
 
         except gp.GurobiError as e:
             print('Error code' + str(e.errno) + ': ' + str(e))
