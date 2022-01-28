@@ -134,6 +134,22 @@ class Model1(object):
     def capacity(self, value):
         self._capacity = value
 
+    @property
+    def t_bar(self):
+        temp1=np.array(self.ll)
+        temp2=np.array(self.v)
+        temp3=temp1/temp2
+        self._t_bar=[(self.M+1)*self.headway+temp3[:j-1].sum()+j-1 for j in range(1,self.N+1)]
+        return self._t_bar
+    @t_bar.setter
+    def t_bar(self,value):
+        if not isinstance(value,list):
+            raise ValueError('t_bar must be a list')
+        if len(value) !=self.N:
+            raise ValueError(f'The length must equal to {self.N}')
+        self._t_bar=value
+        return self._t_bar
+
     def Optimal(self):
         try:
             m = gp.Model('bus_original')
@@ -158,8 +174,8 @@ class Model1(object):
             phi = m.addVars(index_1, name='phi')
             alight = m.addVars(index_4, name='alight')
             w = m.addVars(index_1, name='w')
+            #t_bar = m.addVars(range(1, self.N + 1), name='t_tar')
 
-            t_bar = m.addVars(range(1, self.N + 1), name='t_tar')
             #arrival_bar=m.addVars(range(2,self.N+1),name='arrival_bar')
             #tau_bar=m.addVars(range(2,self.N+1),name='tau_bar')
 
@@ -175,12 +191,17 @@ class Model1(object):
                     y - 1] / 2 for x in range(2, self.M+1) for y in range(1, self.N + 1))
             item1 = item1 + gp.quicksum(
                 self.lambda_[y - 1] / 2 * departure[1, y] * departure[1, y] for y in range(1, self.N + 1))
-            item2 = gp.quicksum(
-                in_vehicle[x, y + 1] * tau[x, y] for x in range(1, self.M + 1) for y in range(2, self.N + 1))
+            item1=item1+gp.quicksum(self.lambda_[y-1]/2*(self.t_bar[y-1]-departure[self.M,y])*(self.t_bar[y-1]-departure[self.M,y]) for y in range(1,self.N+1))
+            #item2 = gp.quicksum(
+            #    in_vehicle[x, y + 1] * tau[x, y] for x in range(1, self.M + 1) for y in range(2, self.N + 1))
+
+            item2=gp.quicksum(
+                (in_vehicle[x,y+1]-in_vehicle_j.prod(self.p,x,'*',y+1))*tau[x,y+1] for x in range(1,self.M+1) for y in range(1,self.N))
+
             item3 = gp.quicksum(
-                w[x - 1, y] * (departure[x, y] - departure[x - 1, y]) for x in range(2, self.M + 1) for y in
+                w[x, y] * (departure[x+1, y] - departure[x, y]) for x in range(1, self.M) for y in
                 range(1, self.N + 1))
-            item3 = item3 + gp.quicksum(w[self.M, y] * (t_bar[y] - departure[self.M, y]) for y in range(1, self.N + 1))
+            item3 = item3 + gp.quicksum(w[self.M, y] * (self.t_bar[y-1] - departure[self.M, y]) for y in range(1, self.N + 1))
 
             m.setObjective(self.theta[0]*item1 + self.theta[1]*item2 + self.theta[2]*item3, sense=gp.GRB.MINIMIZE)
 
@@ -211,7 +232,7 @@ class Model1(object):
             m.addConstrs((departure[x, y] - departure[x - 1, y] >= 0 for x, y in index_1 if x != 1),
                          name='overtakeing_n_1')
             m.addConstrs((arrival[x, y] - arrival[x - 1, y] >= 0 for x, y in index_2 if x != 1), name='overtakeing_n_2')
-            m.addConstrs((t_bar[y] - departure[self.M, y] >= 0 for y in range(1, self.N + 1)), name='virtual')
+            m.addConstrs((self.t_bar[y-1] - departure[self.M, y] >= 0 for y in range(1, self.N + 1)), name='virtual')
             m.addConstrs((board[x, y] == phi[x, y] - w[x, y] for x, y in index_1), name='factual_board')
             m.addConstrs((tau[x, y] == board[x, y] * self.boarding_rate / 60 for x, y in index_2), name='duration')
 
@@ -235,7 +256,7 @@ class Model1(object):
                 self.phi=m.getAttr('x',phi)
                 self.tau=m.getAttr('x',tau)
                 self.alight=m.getAttr('x',alight)
-                self.t_bar=m.getAttr('x',t_bar)
+                #self.t_bar=m.getAttr('x',self.t_bar)
                 print(self.departure)
                 print(self.arrival)
                 print(self.in_vehicle_j)
@@ -245,9 +266,9 @@ class Model1(object):
                 print(self.phi)
                 print(self.tau)
                 print('alight:',self.alight)
-                print(self.t_bar)
+                #print(self.t_bar)
                 #return self.result, self.departure, self.arrival, self.in_vehicle, self.w
-                return self.objVal,self.result,self.departure,self.arrival,self.in_vehicle_j,self.in_vehicle,self.board,self.w,self.phi,self.tau,self.alight,self.t_bar
+                return self.objVal,self.result,self.departure,self.arrival,self.in_vehicle_j,self.in_vehicle,self.board,self.w,self.phi,self.tau,self.alight
 
         except gp.GurobiError as e:
             print('Error code' + str(e.errno) + ': ' + str(e))
