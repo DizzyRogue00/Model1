@@ -231,10 +231,15 @@ class Model1(object):
                 (phi[x, y] == self.lambda_[y - 1] * (departure[x, y] - departure[x - 1, y] + w[x - 1, y]) for x, y in
                  index_1 if x != 1), name='waiting')
             m.addConstrs((alight[x, z] == in_vehicle_j.prod(self.p, x, '*', z) for x, z in index_4), name='al')
-            m.addConstrs((w[x, 1] - phi[x, 1] + self.capacity >= 0 for x in range(1, self.M + 1)), name='w_1')
+            # m.addConstrs((w[x, 1] - phi[x, 1] + self.capacity >= 0 for x in range(1, self.M + 1)), name='w_1')
+            # m.addConstrs(
+            #    (w[x, y] - phi[x, y] + (self.capacity - in_vehicle[x, y] + alight[x, y]) >= 0 for x, y in index_2),
+            #   name='w_')
+            m.addConstrs((w[x, 1] == max_(0, phi[x, 1] - self.capacity) for x in range(1, self.M + 1)),
+                         name='modify_w_1')
             m.addConstrs(
-                (w[x, y] - phi[x, y] + (self.capacity - in_vehicle[x, y] + alight[x, y]) >= 0 for x, y in index_2),
-                name='w_')
+                (w[x, y] == max_(0, phi[x, y] - (self.capacity - in_vehicle[x, y] + alight[x, y])) for x, y in index_2),
+                name='modify_w_')
             m.addConstrs((departure[x, y] - departure[x - 1, y] >= 0 for x, y in index_1 if x != 1),
                          name='overtakeing_n_1')
             m.addConstrs((arrival[x, y] - arrival[x - 1, y] >= 0 for x, y in index_2 if x != 1), name='overtakeing_n_2')
