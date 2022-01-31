@@ -181,6 +181,10 @@ class Model1(object):
             # arrival_bar=m.addVars(range(2,self.N+1),name='arrival_bar')
             # tau_bar=m.addVars(range(2,self.N+1),name='tau_bar')
 
+            # add intermediate variables
+            inter_board_limit_1=m.addVars(range(1,self.M+1),name="inter_board_limit_1")
+            inter_board_limit = m.addVars(index_2, name="inter_board_limit")
+
             tau = m.addVars(index_2, name='tau')
             in_vehicle_waiting = m.addVar(name='in_vehicle_waiting')
             at_stop_waiting = m.addVar(name='at_stop_waiting')
@@ -231,15 +235,27 @@ class Model1(object):
                 (phi[x, y] == self.lambda_[y - 1] * (departure[x, y] - departure[x - 1, y] + w[x - 1, y]) for x, y in
                  index_1 if x != 1), name='waiting')
             m.addConstrs((alight[x, z] == in_vehicle_j.prod(self.p, x, '*', z) for x, z in index_4), name='al')
-            # m.addConstrs((w[x, 1] - phi[x, 1] + self.capacity >= 0 for x in range(1, self.M + 1)), name='w_1')
-            # m.addConstrs(
-            #    (w[x, y] - phi[x, y] + (self.capacity - in_vehicle[x, y] + alight[x, y]) >= 0 for x, y in index_2),
-            #   name='w_')
-            m.addConstrs((w[x, 1] == max_(0, phi[x, 1] - self.capacity) for x in range(1, self.M + 1)),
-                         name='modify_w_1')
+            m.addConstrs((w[x, 1] - phi[x, 1] + self.capacity >= 0 for x in range(1, self.M + 1)), name='w_1')
             m.addConstrs(
-                (w[x, y] == max_(0, phi[x, y] - (self.capacity - in_vehicle[x, y] + alight[x, y])) for x, y in index_2),
-                name='modify_w_')
+                (w[x, y] - phi[x, y] + (self.capacity - in_vehicle[x, y] + alight[x, y]) >= 0 for x, y in index_2),
+               name='w_')
+            m.addConstrs(
+                (w[x, y]>= 0 for x, y in index_1),
+               name='w_')
+            print("OK1")
+        #    m.addConstrs((inter_board_limit_1[x]==phi[x,1]-self.capacity for x in range(1,self.M+1)),name="inter_board_limit_1_Con")
+        #    m.addConstrs((w[x, 1] >= 0 for x in range(1, self.M + 1)), name='modify_w_1')
+            #m.addConstrs((w[x, 1] == max_(0, inter_board_limit_1[x]) for x in range(1, self.M + 1)),
+             #           name='modify_w_1')
+            #m.addConstrs((w[x, 1] == max_([0, phi[x, 1] - self.capacity]) for x in range(1, self.M + 1)),
+            #            name='modify_w_1')
+        #    m.addConstrs((inter_board_limit[x,y]==phi[x,y]-(self.capacity-in_vehicle[x,y]+alight[x,y]) for x,y in index_2),name="inter_board_limit_Con")
+        #    m.addConstrs((w[x, y] >= 0 for x, y in index_2), name='modify_w_')
+            #m.addConstrs((w[x, y] == max_(0, inter_board_limit[x,y]) for x, y in index_2),name='modify_w_')
+            #m.addConstrs(
+            #    (w[x, y] == max_(0, (phi[x, y] - (self.capacity - in_vehicle[x, y] + alight[x, y]))) for x, y in index_2),
+            #    name='modify_w_')
+            print("OK3")
             m.addConstrs((departure[x, y] - departure[x - 1, y] >= 0 for x, y in index_1 if x != 1),
                          name='overtakeing_n_1')
             m.addConstrs((arrival[x, y] - arrival[x - 1, y] >= 0 for x, y in index_2 if x != 1), name='overtakeing_n_2')
@@ -252,8 +268,9 @@ class Model1(object):
             # m.addConstrs((arrival_bar[y]==t_bar[y-1]+self.ll[y-2]/self.v[y-2] for y in range(2,self.N+1)),name='t_arrival')
             # m.addConstrs((arrival_bar[y]-arrival[self.M,y]>=0 for y in range(2,self.N+1)),name='t_overtaking')
             # m.addConstrs((tau_bar[y]==w[self.M,y]*self.boarding_rate/60 for y in range(2,self.N+1)),name='t_boarding')
-
+            print("OK4")
             m.optimize()
+            print(m.getAttr('x', w))
             if m.status == GRB.OPTIMAL:
                 print(m.status)
                 self.objVal = m.objVal
