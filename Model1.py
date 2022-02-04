@@ -28,7 +28,7 @@ class Model1(object):
 
     @property
     def lambda_(self):
-        self._lambda_ = [0.6, 0.7, 0.8, 1, 0.9, 0.5, 1.2, 1.5, 1.4, 1.6, 1.8, 2.7, 3, 1.2, 2.2, 2, 1.2, 0.8, 1, 0.8,
+        self._lambda_ = [0.6, 0.7, 0.75, 1, 0.8, 0.5, 1.2, 1.5, 1.3, 1.6, 2, 2, 3, 1.2, 2.2, 2, 1.2, 0.8, 1, 0.8,
                          0.7, 0.6, 0.5, 0.5]
         return self._lambda_
 
@@ -83,6 +83,7 @@ class Model1(object):
     def p(self):
         temp = [(x, y, z) for x in range(1, self.M + 1) for y in range(1, self.N + 1) for z in range(y + 1, self.N + 2)]
         temp = tuplelist(temp)
+
         loc = 0
         temp_ = {}
         for y in range(1, self.N + 1):
@@ -98,6 +99,24 @@ class Model1(object):
         temp_ = tupledict(temp_)
         self._p = temp_
         return self._p
+
+        '''
+        loc=self.N//2+1
+        scaler=(self.N-loc)//3+1
+        temp_={}
+        for y in range(1,self.N+1):
+            m=np.array(list(range(y+1,self.N+2)))
+            m=st.norm.pdf(m,loc=loc,scale=scaler)
+            m=m/m.sum()
+            i=0
+            for z in range(y+1,self.N+2):
+                temp_dict={ii:m[i]/m[i:].sum() for ii in temp.select('*',y,z)}
+                temp_.update(temp_dict)
+                i+=1
+        temp_=tupledict(temp_)
+        self._p=temp_
+        return self._p
+        '''
 
     @p.setter
     def p(self, value):
@@ -139,7 +158,7 @@ class Model1(object):
         temp1 = np.array(self.ll)
         temp2 = np.array(self.v)
         temp3 = temp1 / temp2
-        self._t_bar = [(self.M + 1) * self.headway + temp3[:j - 1].sum() + j - 1 for j in range(1, self.N + 1)]
+        self._t_bar = [(self.M + 1) * self.headway + temp3[:j - 1].sum() + (j - 1) for j in range(1, self.N + 1)]
         return self._t_bar
 
     @t_bar.setter
@@ -176,19 +195,22 @@ class Model1(object):
             phi = m.addVars(index_1, name='phi')
             alight = m.addVars(index_4, name='alight')
             w = m.addVars(index_1, name='w')
-            # t_bar = m.addVars(range(1, self.N + 1), name='t_tar')
+
+            #t_bar = m.addVars(range(1, self.N + 1), name='t_tar')
 
             # arrival_bar=m.addVars(range(2,self.N+1),name='arrival_bar')
             # tau_bar=m.addVars(range(2,self.N+1),name='tau_bar')
 
             # add intermediate variables
-            inter_board_limit_1=m.addVars(range(1,self.M+1),name="inter_board_limit_1")
-            inter_board_limit = m.addVars(index_2, name="inter_board_limit")
+            inter_board_limit_1=m.addVars(range(1,self.M+1),lb=-GRB.INFINITY,name="inter_board_limit_1")
+            inter_board_limit = m.addVars(index_2,lb=-GRB.INFINITY, name="inter_board_limit")
 
             tau = m.addVars(index_2, name='tau')
             in_vehicle_waiting = m.addVar(name='in_vehicle_waiting')
             at_stop_waiting = m.addVar(name='at_stop_waiting')
             extra_waiting = m.addVar(name='extra_waiting')
+
+            #holding_time=m.addVars(index_2,name='holding_time')
 
             m.update()
             # lhs=LinExpr(0)
@@ -199,6 +221,9 @@ class Model1(object):
                 self.lambda_[y - 1] / 2 * departure[1, y] * departure[1, y] for y in range(1, self.N + 1))
             item1 = item1 + gp.quicksum(self.lambda_[y - 1] / 2 * (self.t_bar[y - 1] - departure[self.M, y]) * (
                     self.t_bar[y - 1] - departure[self.M, y]) for y in range(1, self.N + 1))
+            #item1 = item1 + gp.quicksum(self.lambda_[y - 1] / 2 * (t_bar[y ] - departure[self.M, y]) * (
+             #          t_bar[y ] - departure[self.M, y]) for y in range(1, self.N + 1))
+
             # item2 = gp.quicksum(
             #    in_vehicle[x, y + 1] * tau[x, y] for x in range(1, self.M + 1) for y in range(2, self.N + 1))
 
@@ -211,6 +236,8 @@ class Model1(object):
                 range(1, self.N + 1))
             item3 = item3 + gp.quicksum(
                 w[self.M, y] * (self.t_bar[y - 1] - departure[self.M, y]) for y in range(1, self.N + 1))
+            #item3 = item3 + gp.quicksum(
+             #   w[self.M, y] * (t_bar[y] - departure[self.M, y]) for y in range(1, self.N + 1))
 
             m.setObjective(self.theta[0] * item1 + self.theta[1] * item2 + self.theta[2] * item3, sense=gp.GRB.MINIMIZE)
 
@@ -218,6 +245,7 @@ class Model1(object):
             m.addConstr(at_stop_waiting == item1, name='at_stop_c')
             m.addConstr(extra_waiting == item3, name='extra_c')
 
+            #m.addConstrs((holding_time[x,1] for x in range(1,self.M+1)),name='holding_time_1')
             m.addConstrs((departure[x, 1] == self.headway * x for x in range(1, self.M + 1)), name='depart_1')
             m.addConstrs(
                 (departure[x, y] == departure[x, y - 1] + self.ll[y - 2] / self.v[y - 2] + tau[x, y] for x, y in
@@ -228,34 +256,34 @@ class Model1(object):
                 (in_vehicle_j[x, y, z] == in_vehicle_j[x, y, z - 1] * (1 - self.p[x, y, z - 1]) for x, y, z in index_3
                  if y != z - 1), name='in_j')
             m.addConstrs((in_vehicle_j[x, y, z] == board[x, y] for x, y, z in index_3 if z == y + 1), name='in_')
-            m.addConstrs((in_vehicle[x, y] == in_vehicle_j.sum(x, '*', y) for x, y in index_2), name='inTotal')
+            m.addConstrs((in_vehicle[x, y] == in_vehicle_j.sum(x, '*', y) for x, y in index_4), name='inTotal')
             m.addConstrs((phi[1, y] == self.lambda_[y - 1] * departure[1, y] for y in range(1, self.N + 1)),
                          name='waiting_1')
             m.addConstrs(
                 (phi[x, y] == self.lambda_[y - 1] * (departure[x, y] - departure[x - 1, y] + w[x - 1, y]) for x, y in
                  index_1 if x != 1), name='waiting')
             m.addConstrs((alight[x, z] == in_vehicle_j.prod(self.p, x, '*', z) for x, z in index_4), name='al')
-            m.addConstrs((w[x, 1] - phi[x, 1] + self.capacity >= 0 for x in range(1, self.M + 1)), name='w_1')
-            m.addConstrs(
-                (w[x, y] - phi[x, y] + (self.capacity - in_vehicle[x, y] + alight[x, y]) >= 0 for x, y in index_2),
-               name='w_')
-            m.addConstrs(
-                (w[x, y]>= 0 for x, y in index_1),
-               name='w_')
-            print("OK1")
-        #    m.addConstrs((inter_board_limit_1[x]==phi[x,1]-self.capacity for x in range(1,self.M+1)),name="inter_board_limit_1_Con")
-        #    m.addConstrs((w[x, 1] >= 0 for x in range(1, self.M + 1)), name='modify_w_1')
-            #m.addConstrs((w[x, 1] == max_(0, inter_board_limit_1[x]) for x in range(1, self.M + 1)),
-             #           name='modify_w_1')
-            #m.addConstrs((w[x, 1] == max_([0, phi[x, 1] - self.capacity]) for x in range(1, self.M + 1)),
-            #            name='modify_w_1')
-        #    m.addConstrs((inter_board_limit[x,y]==phi[x,y]-(self.capacity-in_vehicle[x,y]+alight[x,y]) for x,y in index_2),name="inter_board_limit_Con")
-        #    m.addConstrs((w[x, y] >= 0 for x, y in index_2), name='modify_w_')
-            #m.addConstrs((w[x, y] == max_(0, inter_board_limit[x,y]) for x, y in index_2),name='modify_w_')
+
+            #m.addConstrs((w[x, 1] - phi[x, 1] + self.capacity >= 0 for x in range(1, self.M + 1)), name='w_1')
             #m.addConstrs(
-            #    (w[x, y] == max_(0, (phi[x, y] - (self.capacity - in_vehicle[x, y] + alight[x, y]))) for x, y in index_2),
-            #    name='modify_w_')
-            print("OK3")
+            #    (w[x, y] - phi[x, y] + (self.capacity - in_vehicle[x, y] + alight[x, y]) >= 0 for x, y in index_2),
+            #   name='w_')
+            #m.addConstrs(
+            #    (w[x, y]>= 0 for x, y in index_1),
+            #   name='w_')
+
+            #print("OK1")
+            m.addConstrs((inter_board_limit_1[x]==phi[x,1]-self.capacity for x in range(1,self.M+1)),name="inter_board_limit_1_Con")
+            m.addConstrs((w[x, 1] == max_(0, inter_board_limit_1[x]) for x in range(1, self.M + 1)), name='modify_w_1')
+            m.addConstrs((inter_board_limit[x, y] == phi[x, y] - (self.capacity - in_vehicle[x, y] + alight[x, y]) for x, y in index_2), name="inter_board_limit_Con")
+            m.addConstrs((w[x, y] == max_(0, inter_board_limit[x, y]) for x, y in index_2), name='modify_w_')
+
+            #m.addConstrs((w[x, 1] == 0 for x in range(1, self.M + 1)), name='modify_w_1')
+            #m.addConstrs((w[x, y] == 0 for x, y in index_2), name='modify_w_')
+
+        #    m.addConstrs((w[x, 1] >= 0 for x in range(1, self.M + 1)), name='modify_w_1')
+        #    m.addConstrs((w[x, y] >= 0 for x, y in index_2), name='modify_w_')
+            #print("OK3")
             m.addConstrs((departure[x, y] - departure[x - 1, y] >= 0 for x, y in index_1 if x != 1),
                          name='overtakeing_n_1')
             m.addConstrs((arrival[x, y] - arrival[x - 1, y] >= 0 for x, y in index_2 if x != 1), name='overtakeing_n_2')
@@ -268,7 +296,9 @@ class Model1(object):
             # m.addConstrs((arrival_bar[y]==t_bar[y-1]+self.ll[y-2]/self.v[y-2] for y in range(2,self.N+1)),name='t_arrival')
             # m.addConstrs((arrival_bar[y]-arrival[self.M,y]>=0 for y in range(2,self.N+1)),name='t_overtaking')
             # m.addConstrs((tau_bar[y]==w[self.M,y]*self.boarding_rate/60 for y in range(2,self.N+1)),name='t_boarding')
-            print("OK4")
+
+            #m.addConstrs((t_bar[y]-departure[self.M,y]>=0 for y in range(1,self.N+1)),name='virtual')
+            #print("OK4")
             m.optimize()
             print(m.getAttr('x', w))
             if m.status == GRB.OPTIMAL:
