@@ -257,10 +257,12 @@ class Model1(object):
                  if y != z - 1), name='in_j')
             m.addConstrs((in_vehicle_j[x, y, z] == board[x, y] for x, y, z in index_3 if z == y + 1), name='in_')
             m.addConstrs((in_vehicle[x, y] == in_vehicle_j.sum(x, '*', y) for x, y in index_4), name='inTotal')
-            m.addConstrs((phi[1, y] == self.lambda_[y - 1] * departure[1, y] for y in range(1, self.N + 1)),
+            #m.addConstrs((phi[1, y] == self.lambda_[y - 1] * departure[1, y] for y in range(1, self.N + 1)),
+            #             name='waiting_1')
+            m.addConstrs((phi[1, y] == self.lambda_[y - 1] * self.headway/2 for y in range(1, self.N + 1)),
                          name='waiting_1')
             m.addConstrs(
-                (phi[x, y] == self.lambda_[y - 1] * (departure[x, y] - departure[x - 1, y] + w[x - 1, y]) for x, y in
+                (phi[x, y] == self.lambda_[y - 1] * (departure[x, y] - departure[x - 1, y]) + w[x - 1, y] for x, y in
                  index_1 if x != 1), name='waiting')
             m.addConstrs((alight[x, z] == in_vehicle_j.prod(self.p, x, '*', z) for x, z in index_4), name='al')
 
