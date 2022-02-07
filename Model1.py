@@ -302,7 +302,7 @@ class Model1(object):
             #m.addConstrs((t_bar[y]-departure[self.M,y]>=0 for y in range(1,self.N+1)),name='virtual')
             #print("OK4")
             m.optimize()
-            print(m.getAttr('x', w))
+            #print(m.getAttr('x', w))
             if m.status == GRB.OPTIMAL:
                 print(m.status)
                 self.objVal = m.objVal
@@ -389,3 +389,5 @@ class Model1(object):
             print('Error code' + str(e.errno) + ': ' + str(e))
         except AttributeError:
             print('Encountered an attribute error')
+
+    
