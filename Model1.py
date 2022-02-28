@@ -37,6 +37,8 @@ class Model1(object):
     def lambda_(self):
         self._lambda_ = [0.6, 0.7, 0.75, 1, 0.8, 0.5, 1.2, 1.5, 1.3, 1.6, 2, 2, 3, 1.2, 2.2, 2, 1.2, 0.8, 1, 0.8,
                          0.7, 0.6, 0.5, 0.5]
+        #self._lambda_ = [0.6, 0.7, 0.75, 1, 0.8, 0.5, 1.2, 1.5, 1.3, 1.6, 2, 2, 3, 1.2, 2.2, 2, 1.2, 0.8, 1, 0.8,
+        #                 0.7, 0.6, 0.5, 0.5]
         return self._lambda_
 
     @lambda_.setter
@@ -88,9 +90,55 @@ class Model1(object):
 
     @property
     def p(self):
+        def myiter(iterable, *, initial=None):
+            it = iter(iterable)
+            total = initial
+            if initial == None:
+                try:
+                    total = next(it)
+                except StopIteration:
+                    return
+            yield total
+            alpha = 1
+            for element in it:
+                if element != 0:
+                    element = element * alpha
+                    total = element / (1 - total)
+                    alpha *= total / element
+                else:
+                    total = 1
+                yield total
         temp = [(x, y, z) for x in range(1, self.M + 1) for y in range(1, self.N + 1) for z in range(y + 1, self.N + 2)]
         temp = tuplelist(temp)
-
+        if self.N%2==0:
+            stop_step=self.N//2
+        else:
+            stop_step=(self.N+1)//2
+        terminal_stop=self.N//2+1
+        temp_={}
+        for y in range(1,self.N+1):
+            #m = np.array(list(np.arange(y + 1, self.N + 2)))
+            m = np.array([0.5]*(self.N-y+1))
+            if y>=terminal_stop:
+                if len(m)==1:
+                    m[-1]=1
+                else:
+                    m[-1]=0.5
+                    m[:-1]=0.5/(self.N-y)
+            else:
+                m[:]=0.5/(stop_step-1)
+                m[stop_step:]=0
+                m[stop_step-y-1]=0.5
+            m=list(myiter(m))
+            i=0
+            for z in range(y+1,self.N+2):
+                temp_dict={ii:m[i] for ii in temp.select('*',y,z)}
+                temp_.update(temp_dict)
+                i+=1
+        temp_=tupledict(temp_)
+        self._p=temp_
+        return self._p
+        '''
         loc = 0
         temp_ = {}
         for y in range(1, self.N + 1):
@@ -106,7 +154,7 @@ class Model1(object):
         temp_ = tupledict(temp_)
         self._p = temp_
         return self._p
-
+        '''
         '''
         loc=self.N//2+1
         scaler=(self.N-loc)//3+1
@@ -135,7 +183,7 @@ class Model1(object):
 
     @property
     def headway(self):
-        self._headway = 6
+        self._headway = 5
         return self._headway
 
     @headway.setter
@@ -144,7 +192,7 @@ class Model1(object):
 
     @property
     def boarding_rate(self):  # s/pax
-        self._boarding_rate = 2
+        self._boarding_rate = 4
         return self._boarding_rate
 
     @boarding_rate.setter
@@ -202,7 +250,6 @@ class Model1(object):
             phi = m.addVars(index_1, name='phi')
             alight = m.addVars(index_4, name='alight')
             w = m.addVars(index_1, name='w')
-
             #t_bar = m.addVars(range(1, self.N + 1), name='t_tar')
 
             # arrival_bar=m.addVars(range(2,self.N+1),name='arrival_bar')
@@ -217,6 +264,8 @@ class Model1(object):
             at_stop_waiting = m.addVar(name='at_stop_waiting')
             extra_waiting = m.addVar(name='extra_waiting')
 
+            #add actual dwelling time/passengers
+            #dwelling_time=m.addVars(index_2,name='dwelling_time')
             #holding_time=m.addVars(index_2,name='holding_time')
 
             m.update()
@@ -268,6 +317,8 @@ class Model1(object):
             #             name='waiting_1')
             m.addConstrs((phi[1, y] == self.lambda_[y - 1] * self.headway/2 for y in range(1, self.N + 1)),
                          name='waiting_1')
+            #m.addConstrs((phi[1, y] == self.lambda_[y - 1] * self.headway/2 for y in range(1, self.N + 1)),
+            #             name='waiting_1')
             m.addConstrs(
                 (phi[x, y] == self.lambda_[y - 1] * (departure[x, y] - departure[x - 1, y]) + w[x - 1, y] for x, y in
                  index_1 if x != 1), name='waiting')
@@ -298,7 +349,9 @@ class Model1(object):
             m.addConstrs((arrival[x, y] - arrival[x - 1, y] >= 0 for x, y in index_2 if x != 1), name='overtakeing_n_2')
             m.addConstrs((self.t_bar[y - 1] - departure[self.M, y] >= 0 for y in range(1, self.N + 1)), name='virtual')
             m.addConstrs((board[x, y] == phi[x, y] - w[x, y] for x, y in index_1), name='factual_board')
+            #m.addConstrs((dwelling_time[x,y]==max_(board[x,y],alight[x,y]) for x,y in index_2),name='actual_passenger')
             m.addConstrs((tau[x, y] == board[x, y] * self.boarding_rate / 60 for x, y in index_2), name='duration')
+            #m.addConstrs((tau[x, y] == dwelling_time[x, y] * self.boarding_rate / 60 for x, y in index_2), name='duration')
 
             # m.addConstr(t_bar[1]==self.headway*(self.M+1),name='t_depart_1')
             # m.addConstrs((t_bar[y]==t_bar[y-1]+self.ll[y-2]/self.v[y-2]+tau_bar[y] for y in range(2,self.N+1)),name='t_depart')
@@ -420,7 +473,7 @@ class Model1(object):
 
     def Analysis(self):
         self.__Optimal()
-
+        #print(self._alight)
         data_lambda={"lambda rate":pd.Series(self.lambda_[:self.N],index=range(1,self.N+1))}
         data_lambda=pd.DataFrame(data=data_lambda)
         #print(data_lambda)
@@ -498,13 +551,13 @@ class Model1(object):
         ax.set_facecolor("w")
         ax.spines['bottom'].set(visible=True, color='k', linewidth=0.5)
         ax.spines['left'].set(visible=True, color='k', linewidth=0.5)
-        plt.xticks(range(1, self.N + 2), fontweight='bold',fontsize=15)
-        plt.yticks(None, None, fontweight='bold',fontsize=15)
-        plt.xlabel("Bus Stations", fontdict=dict(fontweight='bold',fontsize=15))
-        plt.ylabel('Load', fontweight='bold',fontsize=15)
+        plt.xticks(range(1, self.N + 2), fontweight='bold')
+        plt.yticks(None, None, fontweight='bold')
+        plt.xlabel("Bus Stations", fontdict=dict(fontweight='bold'))
+        plt.ylabel('Load', fontweight='bold')
         legend_label=list(map(lambda x,y:x+y,['Bus ']*len(list(data_in_vehicle.columns)),list(data_in_vehicle.columns)))
         #ax.legend(loc='upper right')
-        lg=ax.legend(legend_label,loc='upper left',bbox_to_anchor=(1.05,0.95),fontsize=15,markerscale=1.5,framealpha=0.5,facecolor='white',edgecolor='black',borderaxespad=0)
+        lg=ax.legend(legend_label,loc='upper left',bbox_to_anchor=(1.05,0.95),markerscale=1.5,framealpha=0.5,facecolor='white',edgecolor='black',borderaxespad=0)
         plt.grid(False)
         plt.tight_layout()
         #plt.show()
@@ -524,7 +577,7 @@ class Model1(object):
         groupby_var='Bus'
         data_b=data_passenger.groupby(groupby_var)
         bar_x=np.arange(1,self.N+1)
-        bar_width=0.1
+        bar_width=1/(self.M+1)
         bar_tick_label=list(map(lambda x:str(x),bar_x))
         colors = [plt.cm.Spectral(i / float(2 - 1)) for i in range(2)]
         #colors=['#8E354A','#261E47']
@@ -611,7 +664,7 @@ class Model1(object):
         plt.figure(num=5, facecolor='white', edgecolor='black')
         plt.rcParams['font.family']='serif'
         plt.rcParams['font.serif']='Times New Roman'
-        colors=[plt.cm.get_cmap('tab20b')(i/float(self.N-1)) for i in range(self.N)]
+        colors=[plt.cm.get_cmap('tab20b')(i/float(self.M-1)) for i in range(self.M)]
         color_count=0
         for col in data_trajectory.columns:
             if col !='Stop':
