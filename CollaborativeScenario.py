@@ -9,6 +9,7 @@ import os
 import math
 import copy
 from functools import reduce
+from itertools import *
 sb.set()
 
 class Collaborative(object):
@@ -17,6 +18,8 @@ class Collaborative(object):
         self.M=M
         self.N=N
         self._parcel_capacity=30
+        self._holding=3#mins
+        self._unloading_rate=6# 6 sec per parcel
 
     @property
     def lambda_(self):
@@ -191,7 +194,7 @@ class Collaborative(object):
         return [0,self.headway*self.M]
 
     def due_interval(self):
-        due_left=sum(np.array(self.ll[:math.ceil(self/2)+1])/self.v)
+        due_left=sum(np.array(self.ll[:math.ceil(self.N/2)])/self.v)
         due_right=self.headway*self.M+2*due_left
         return [due_left,due_right]
 
@@ -199,4 +202,11 @@ class Collaborative(object):
         temp1 = np.array(self.ll)
         temp2 = np.array(self.v)
         temp3 = temp1 / temp2
-        self._t_bar = [(value + 1) * self.headway + temp3[:j - 1].sum() + (j - 1) for j in range(1, self.N + 1)]
+        intermediate_stop=math.ceil(self.N/2)+1
+        duaration_buffer=[1 if i !=intermediate_stop else self._holding for i in range(2,self.N+1)]
+        acc_time=list(map(lambda x,y:x+y,duaration_buffer,list(temp3)[:-1]))
+        acc_time.insert(0,(value+1)*self.headway)
+        self._t_bar=list(accumulate(acc_time))
+        return self._t_bar
+
+
