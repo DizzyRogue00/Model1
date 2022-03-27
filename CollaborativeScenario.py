@@ -11,6 +11,7 @@ import copy
 from functools import reduce
 from itertools import *
 import random
+from operator import*
 sb.set()
 
 class Collaborative(object):
@@ -160,24 +161,7 @@ class Collaborative(object):
     def demand(self,value):
         self._demand=value
         return self._demand
-    '''
-    @property
-    def t_bar(self):
-        temp1 = np.array(self.ll)
-        temp2 = np.array(self.v)
-        temp3 = temp1 / temp2
-        self._t_bar = [(self.M + 1) * self.headway + temp3[:j - 1].sum() + (j - 1) for j in range(1, self.N + 1)]
-        return self._t_bar
 
-    @t_bar.setter
-    def t_bar(self, value):
-        if not isinstance(value, list):
-            raise ValueError('t_bar must be a list')
-        if len(value) != self.N:
-            raise ValueError(f'The length must equal to {self.N}')
-        self._t_bar = value
-        return self._t_bar
-    '''
     @property
     def size(self):
         self._size=[1,2,5]
@@ -210,12 +194,92 @@ class Collaborative(object):
         self._t_bar=list(accumulate(acc_time))
         return self._t_bar
 
-    def __demand_parcels(self):
-        self.__parcelNo = [random.randint(1, self._parcel_capacity) for i in range(self.demand)]
-        return self.__parcelNo
+    def __dispatch(self):
+        parcels=random.randint(1,self._parcel_capacity)
+        self.size.reverse()
+        def div_mod(iterable,func=operator.mod,*,initial=None):
+            it=iter(iterable)
+            total=initial
+            if initial is None:
+                try:
+                    total=next(it)
+                except StopIteration:
+                    return
+            yield total
+            div=0
+            for element in it:
+                div=total//element
+                total=func(total,element)
+                yield div
+        dispatch_result=list(div_mod(self.size,initial=parcels))
+        self.size.reverse()
+        dispatch_result.pop(0)
+        return dispatch_result
 
-    def __generate_ready_date(self):
-        ready_interval = self.release_interval()
+    def __size_ready(self,data,k):#a piece of record
+        size_k=self.size.index(k)
+        ready_size_k=data[size_k]*[data[-2]]
+        return ready_size_k
+
+    def __size_due(self,data,k):#a piece of record
+        size_k=self.size.index(k)
+        due_size_k=data[size_k]*[data[-1]]
+        return due_size_k
+
+    def __max_disp(self,size_k,busNo,data):
+        if data[size_k]!=[]:
+            return reduce(operator.add,map(lambda x:1 if x<self.headway*busNo else 0,data[size_k]))
+        else:
+            return 0
+
+    def dd_subscript_generate(self,t,data):
+        if t==1:
+            return [(i,t,0,q) for i in self.size for q in range(0,data[i,1]+1)]
+        else:
+            return [(i,t,p,q) for i in self.size for p in range(0,data[i,t-1]+1) for q in range(0,data[i,t]-p+1)]
+
+    def dd_value_generate(self,data,due_Data):
+        if data[3]==0:
+            return 1000
+        else:
+            return due_Data[data[0],data[2]+data[3]-1]
+
+    def demand_parcels(self):
+        ready_left,ready_right=self.release_interval()
+        ready=list(map(lambda x: random.uniform(ready_left,ready_right), list(range(self.demand))))
+        sorted_ready=sorted(ready)
+        due_left,due_right=self.due_interval()
+        max_due=0
+        count_due=0
+        sorted_due=[]
+        while True:
+            due_date=random.uniform(due_left,due_right)
+            if due_date<=sorted_ready[count_due]:
+                continue
+            if due_date<max_due:
+                continue
+            else:
+                sorted_due.append(due_date)
+                count_due+=1
+                max_due=due_date
+                if count_due==len(sorted_ready):
+                    break
+        database={i+1:self.__dispatch()+[sorted_ready[i],sorted_due[i]] for i in range(len(sorted_ready))}
+        database_ready={i: reduce(operator.add,map(lambda x:self.__size_ready(x,k=i),database.values())) for i in self.size}
+        database_due={i: reduce(operator.add,map(lambda x: self.__size_due(x,k=i), database.values())) for i in self.size}
+        max_disp_temp=gp.tuplelist([(i,j) for i in self.size for j in range(1,self.M+1)])
+        max_disp={i:self.__max_disp(i[0],i[1],database_ready) for i in max_disp_temp}
+        max_disp=gp.tupledict(max_disp)
+        dd_temp=reduce(operator.add,map(lambda x:self.dd_subscript_generate(x,max_disp),range(1,self.M+1)))
+        dd_temp=gp.tuplelist(dd_temp)
+        dd={i:self.dd_value_generate(i,database_due) for i in dd_temp}
+        dd.gp.tupledict(dd)
+        self.database_ready=database_ready
+        self.database_due=database_due
+        self.max_disp=max_disp
+        self.dd=dd
+        return self.database_ready,self.database_due,self.max_disp,self.dd
+
 
 
 
