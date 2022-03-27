@@ -10,6 +10,7 @@ import math
 import copy
 from functools import reduce
 from itertools import *
+import random
 sb.set()
 
 class Collaborative(object):
@@ -208,5 +209,13 @@ class Collaborative(object):
         acc_time.insert(0,(value+1)*self.headway)
         self._t_bar=list(accumulate(acc_time))
         return self._t_bar
+    def __demand_parcels(self):
+        self.__parcelNo=[random.randint(1,self._parcel_capacity) for i in range(self.demand)]
+        return self.__parcelNo
+    def __generate_ready_date(self):
+        ready_interval=self.release_interval()
+        
+
+
 
 
