@@ -11,7 +11,8 @@ import copy
 from functools import reduce
 from itertools import *
 import random
-from operator import*
+#from operator import*
+import operator
 sb.set()
 
 class Collaborative(object):
@@ -179,7 +180,7 @@ class Collaborative(object):
         return [0,self.headway*self.M]
 
     def due_interval(self):
-        due_left=sum(np.array(self.ll[:math.ceil(self.N/2)])/self.v)
+        due_left=sum(np.array(self.ll[:math.ceil(self.N/2)])/self.v[:math.ceil(self.N/2)])
         due_right=self.headway*self.M+2*due_left
         return [due_left,due_right]
 
@@ -196,7 +197,9 @@ class Collaborative(object):
 
     def __dispatch(self):
         parcels=random.randint(1,self._parcel_capacity)
-        self.size.reverse()
+        #print(parcels)
+        size_reverse=self.size
+        size_reverse.reverse()
         def div_mod(iterable,func=operator.mod,*,initial=None):
             it=iter(iterable)
             total=initial
@@ -211,9 +214,10 @@ class Collaborative(object):
                 div=total//element
                 total=func(total,element)
                 yield div
-        dispatch_result=list(div_mod(self.size,initial=parcels))
-        self.size.reverse()
+        dispatch_result=list(div_mod(size_reverse,initial=parcels))
         dispatch_result.pop(0)
+        dispatch_result.reverse()
+        #print(dispatch_result)
         return dispatch_result
 
     def __size_ready(self,data,k):#a piece of record
@@ -242,7 +246,7 @@ class Collaborative(object):
         if data[3]==0:
             return 1000
         else:
-            return due_Data[data[0],data[2]+data[3]-1]
+            return due_Data[data[0]][data[2]+data[3]-1]
 
     def demand_parcels(self):
         ready_left,ready_right=self.release_interval()
@@ -273,7 +277,7 @@ class Collaborative(object):
         dd_temp=reduce(operator.add,map(lambda x:self.dd_subscript_generate(x,max_disp),range(1,self.M+1)))
         dd_temp=gp.tuplelist(dd_temp)
         dd={i:self.dd_value_generate(i,database_due) for i in dd_temp}
-        dd.gp.tupledict(dd)
+        dd=gp.tupledict(dd)
         self.database_ready=database_ready
         self.database_due=database_due
         self.max_disp=max_disp
