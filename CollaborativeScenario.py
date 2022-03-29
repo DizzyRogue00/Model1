@@ -13,6 +13,7 @@ from itertools import *
 import random
 #from operator import*
 import operator
+from numpy import inf
 sb.set()
 
 class Collaborative(object):
@@ -283,6 +284,17 @@ class Collaborative(object):
         self.max_disp=max_disp
         self.dd=dd
         return self.database_ready,self.database_due,self.max_disp,self.dd
+
+    def __Optimal(self):
+        try:
+           m=gp.Model('Bus_Collaborative')
+           index_1=
+        except gp.GurobiError as e:
+            print('Error code'+str(e.errno)+': '+str(e))
+        except AttributeError:
+            print('Encounted an attribute error')
+
+
 
 
 
