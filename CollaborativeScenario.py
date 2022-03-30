@@ -87,7 +87,7 @@ class Collaborative(object):
                 else:
                     total = 1
                 yield total
-        temp = [(x, y, z) for x in range(1, self.M + 1) for y in range(1, self.N + 1) for z in range(y + 1, self.N + 2)]
+        temp = [(y, z) for y in range(1, self.N + 1) for z in range(y + 1, self.N + 2)]
         temp = tuplelist(temp)
         if self.N%2==0:
             stop_step=self.N//2
@@ -111,7 +111,7 @@ class Collaborative(object):
             m=list(myiter(m))
             i=0
             for z in range(y+1,self.N+2):
-                temp_dict={ii:m[i] for ii in temp.select('*',y,z)}
+                temp_dict={temp[y,z]:m[i]}
                 temp_.update(temp_dict)
                 i+=1
         temp_=tupledict(temp_)
@@ -285,10 +285,47 @@ class Collaborative(object):
         self.dd=dd
         return self.database_ready,self.database_due,self.max_disp,self.dd
 
-    def __Optimal(self):
+    def __Optimal(self,n,data,database,current_data):
         try:
            m=gp.Model('Bus_Collaborative')
-           index_1=
+           index_1=gp.tuplelist([(y,z) for z in range(2,self.N+2) for y in range(1,z)])
+           departure = m.addVars(range(1,self.N+1), name='departure')#departure time
+           arrival=m.addVars(range(2,self.N+1),name='arrival')#arrival time
+           in_vehicle_j=m.addVars(index_1,name='in_vehicle_j')#the number of ridership before arriving at the bus station from a specific bus station
+           board=m.addVars(range(1,self.N+1),name='board')#boarding number
+           in_vehicle=m.addVars(range(2,self.N+2),name='in_vehicle')#the number of ridership before arriving at the bus station
+           phi=m.addVars(range(1,self.N+1),name='phi')#total waiting number
+           alight=m.addVars(range(2,self.N+2),name='alight')#alighting number
+           w=m.addVars(range(1,self.N+1),name='w')
+           tau=m.addVars(range(2,self.N+1),name='tau')#dwelling time
+
+           #
+           inter_board_limit_1=m.addVar(lb=-GRB.INFINITY,name='inter_board_limit_1')
+           inter_board_limit=m.addVars(range(2,self.N+1),lb=-GRB.INFINITY,name='inter_board_limit')
+           inter_tau_1=m.addVars(range(2,self.N+1),name='inter_tau_1')
+           inter_tau_2=m.addVar(name='inter_tau_2')
+           #
+           in_vehicle_waiting = m.addVar(name='in_vehicle_waiting')
+           at_stop_waiting = m.addVar(name='at_stop_waiting')
+           extra_waiting = m.addVar(name='extra_waiting')
+           tardy_time=m.addVar(name='tardy_time')
+           total=m.addVar(name='total')
+
+           m.update()
+
+           if n==1:
+
+           else:
+               index=[(x,y) for x in self.size for y in range(current_data[current_data.index(x)]-data[data.index(x)]+1)]
+               index=gp.tuplelist(index)
+               inter_tardy_1=m.addVars(index,name='inter_tardy_1')
+               inter_tardy_2 = m.addVars(index, name='inter_tardy_2')
+               item1=gp.quicksum(pow((departure[j]-database[data]['current_result'].getAttr('x',departure)[j]),2)*self.lambda_[j-1]/2 for j in range(1,self.N+1))
+               item1+=gp.quicksum(self.lambda_[y-1]/2*pow((self.t_bar(n)[y-1]-departure[j]),2) for y in range(1,self.N+1))
+               item2=gp.quicksum((in_vehicle[y+1]-in_vehicle_j.prod(self.p,'*',y+1))*tau[y+1] for y in range(1,self.N))
+               item3=gp.quicksum(database[data]['current_result'].getAttr('x',w)[y]*(departure[j]-database[data]['current_result'].getAttr('x',departure)[j]) for j in range(1,self.N+1))
+               item3+=
+               item4=gp.quicksum(inter_tardy_2[j] for j in index)
         except gp.GurobiError as e:
             print('Error code'+str(e.errno)+': '+str(e))
         except AttributeError:
