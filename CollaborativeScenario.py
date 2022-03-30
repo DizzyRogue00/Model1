@@ -288,7 +288,7 @@ class Collaborative(object):
     def __Optimal(self):
         try:
            m=gp.Model('Bus_Collaborative')
-           index_1=
+           index_1=1
         except gp.GurobiError as e:
             print('Error code'+str(e.errno)+': '+str(e))
         except AttributeError:
