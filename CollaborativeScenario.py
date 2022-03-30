@@ -324,7 +324,7 @@ class Collaborative(object):
                item1+=gp.quicksum(self.lambda_[y-1]/2*pow((self.t_bar(n)[y-1]-departure[j]),2) for y in range(1,self.N+1))
                item2=gp.quicksum((in_vehicle[y+1]-in_vehicle_j.prod(self.p,'*',y+1))*tau[y+1] for y in range(1,self.N))
                item3=gp.quicksum(database[data]['current_result'].getAttr('x',w)[y]*(departure[j]-database[data]['current_result'].getAttr('x',departure)[j]) for j in range(1,self.N+1))
-               item3+=1
+               item3+=12
                item4=gp.quicksum(inter_tardy_2[j] for j in index)
         except gp.GurobiError as e:
             print('Error code'+str(e.errno)+': '+str(e))
