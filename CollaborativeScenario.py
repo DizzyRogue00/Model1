@@ -287,45 +287,80 @@ class Collaborative(object):
 
     def __Optimal(self,n,data,database,current_data):
         try:
-           m=gp.Model('Bus_Collaborative')
-           index_1=gp.tuplelist([(y,z) for z in range(2,self.N+2) for y in range(1,z)])
-           departure = m.addVars(range(1,self.N+1), name='departure')#departure time
-           arrival=m.addVars(range(2,self.N+1),name='arrival')#arrival time
-           in_vehicle_j=m.addVars(index_1,name='in_vehicle_j')#the number of ridership before arriving at the bus station from a specific bus station
-           board=m.addVars(range(1,self.N+1),name='board')#boarding number
-           in_vehicle=m.addVars(range(2,self.N+2),name='in_vehicle')#the number of ridership before arriving at the bus station
-           phi=m.addVars(range(1,self.N+1),name='phi')#total waiting number
-           alight=m.addVars(range(2,self.N+2),name='alight')#alighting number
-           w=m.addVars(range(1,self.N+1),name='w')
-           tau=m.addVars(range(2,self.N+1),name='tau')#dwelling time
+            m=gp.Model('Bus_Collaborative')
+            index_1=gp.tuplelist([(y,z) for z in range(2,self.N+2) for y in range(1,z)])
+            departure = m.addVars(range(1,self.N+1), name='departure')#departure time
+            arrival=m.addVars(range(2,self.N+1),name='arrival')#arrival time
+            in_vehicle_j=m.addVars(index_1,name='in_vehicle_j')#the number of ridership before arriving at the bus station from a specific bus station
+            board=m.addVars(range(1,self.N+1),name='board')#boarding number
+            in_vehicle=m.addVars(range(2,self.N+2),name='in_vehicle')#the number of ridership before arriving at the bus station
+            phi=m.addVars(range(1,self.N+1),name='phi')#total waiting number
+            alight=m.addVars(range(2,self.N+2),name='alight')#alighting number
+            w=m.addVars(range(1,self.N+1),name='w')
+            tau=m.addVars(range(2,self.N+1),name='tau')#dwelling time
 
-           #
-           inter_board_limit_1=m.addVar(lb=-GRB.INFINITY,name='inter_board_limit_1')
-           inter_board_limit=m.addVars(range(2,self.N+1),lb=-GRB.INFINITY,name='inter_board_limit')
-           inter_tau_1=m.addVars(range(2,self.N+1),name='inter_tau_1')
-           inter_tau_2=m.addVar(name='inter_tau_2')
-           #
-           in_vehicle_waiting = m.addVar(name='in_vehicle_waiting')
-           at_stop_waiting = m.addVar(name='at_stop_waiting')
-           extra_waiting = m.addVar(name='extra_waiting')
-           tardy_time=m.addVar(name='tardy_time')
-           total=m.addVar(name='total')
+            #
+            inter_board_limit_1=m.addVar(lb=-GRB.INFINITY,name='inter_board_limit_1')
+            inter_board_limit=m.addVars(range(2,self.N+1),lb=-GRB.INFINITY,name='inter_board_limit')
+            inter_tau_1=m.addVars(range(2,self.N+1),name='inter_tau_1')
+            inter_tau_2=m.addVar(name='inter_tau_2')
+            #
+            in_vehicle_waiting = m.addVar(name='in_vehicle_waiting')
+            at_stop_waiting = m.addVar(name='at_stop_waiting')
+            extra_waiting = m.addVar(name='extra_waiting')
+            tardy_time=m.addVar(name='tardy_time')
+            total_1=m.addVar(name='total_1')#with weight
+            total_2=m.addVar(name='total_2')#without weight
 
-           m.update()
+            m.update()
 
-           if n==1:
+            if n==1:
+                index=[(x,y) for x in self.size for y in range(current_data[current_data.index(x)]+1)]
+                index=gp.tuplelist(index)
+                inter_tardy_1 = m.addVars(index, name='inter_tardy_1')
+                inter_tardy_2 = m.addVars(index, name='inter_tardy_2')
+                item1=gp.quicksum(self.lambda_[j-1]/2*pow(departure[j],2) for j in range(1,self.N+1))
+                item2=gp.quicksum((in_vehicle[j+1]-in_vehicle_j.prod(self.p,'*',j+1))*tau[j+1] for j in range(1,self.N))
+                item33=0
+                item3=item33+gp.quicksum(w[j]*(self.t_bar(1)[j-1]-departure[j]) for j in range(1,self.N+1))
+                item4=gp.quicksum(inter_tardy_2[j] for j in index)
 
-           else:
-               index=[(x,y) for x in self.size for y in range(current_data[current_data.index(x)]-data[data.index(x)]+1)]
-               index=gp.tuplelist(index)
-               inter_tardy_1=m.addVars(index,name='inter_tardy_1')
-               inter_tardy_2 = m.addVars(index, name='inter_tardy_2')
-               item1=gp.quicksum(pow((departure[j]-database[data]['current_result'].getAttr('x',departure)[j]),2)*self.lambda_[j-1]/2 for j in range(1,self.N+1))
-               item1+=gp.quicksum(self.lambda_[y-1]/2*pow((self.t_bar(n)[y-1]-departure[j]),2) for y in range(1,self.N+1))
-               item2=gp.quicksum((in_vehicle[y+1]-in_vehicle_j.prod(self.p,'*',y+1))*tau[y+1] for y in range(1,self.N))
-               item3=gp.quicksum(database[data]['current_result'].getAttr('x',w)[y]*(departure[j]-database[data]['current_result'].getAttr('x',departure)[j]) for j in range(1,self.N+1))
-               item3+=12
-               item4=gp.quicksum(inter_tardy_2[j] for j in index)
+                m.setObjective(self.theta[0]*item1+self.theta[1]*item2+self.theta[2]*item3+self.theta[3]*item4,sense=gp.GRB.MINIMIZE)
+
+            else:
+                index=[(x,y) for x in self.size for y in range(current_data[current_data.index(x)]-data[data.index(x)]+1)]
+                index=gp.tuplelist(index)
+                inter_tardy_1=m.addVars(index,name='inter_tardy_1')
+                inter_tardy_2 = m.addVars(index, name='inter_tardy_2')
+                item11=gp.quicksum(pow((departure[j]-database[data]['current_result'].getAttr('x',departure)[j]),2)*self.lambda_[j-1]/2 for j in range(1,self.N+1))
+                item1=item11+gp.quicksum(self.lambda_[j-1]/2*pow((self.t_bar(n)[j-1]-departure[j]),2) for j in range(1,self.N+1))
+                item2=gp.quicksum((in_vehicle[j+1]-in_vehicle_j.prod(self.p,'*',j+1))*tau[j+1] for j in range(1,self.N))
+                item33=gp.quicksum(database[data]['current_result'].getAttr('x',w)[j]*(departure[j]-database[data]['current_result'].getAttr('x',departure)[j]) for j in range(1,self.N+1))
+                item3=item33+gp.quicksum(w[j]*(self.t_bar(n)[j-1]-departure[j]) for j in range(1,self.N+1))
+                item4=gp.quicksum(inter_tardy_2[j] for j in index)
+
+                m.setObjective(self.theta[0]*item1+self.theta[1]*item2+self.theta[2]*item3+self.theta[3]*item4,sense=gp.GRB.MINIMIZE)
+
+            if n!= self.M:
+                m.addConstr(in_vehicle_waiting==item2,name='in_vehicle_cost')
+                m.addConstr(at_stop_waiting==item11,name='at_stop_cost')
+                m.addConstr(extra_waiting==item33,name='extra_cost')
+                m.addConstr(tardy_time == item4, name='tardiness_cost')
+                m.addConstr(total_1==self.theta[0]*item11+self.theta[1]*item2+self.theta[2]*item33+self.theta[3]*item4,name='total_with_weight')
+                m.addConstr(total_2==item11+item2+item33+item4, name='total_without_weight')
+            else:
+                m.addConstr(in_vehicle_waiting==item2,name='in_vehicle_cost')
+                m.addConstr(at_stop_waiting==item1,name='at_stop_cost')
+                m.addConstr(extra_waiting==item3,name='extra_cost')
+                m.addConstr(tardy_time == item4, name='tardiness_cost')
+                m.addConstr(total_1==self.theta[0]*item1+self.theta[1]*item2+self.theta[2]*item3+self.theta[3]*item4,name='total_with_weight')
+                m.addConstr(total_2==item1+item2+item3+item4, name='total_without_weight')
+
+            m.addContr(departure[1]==self.headway*n,name='depart_1')
+            m.addConstrs((departure[j]==departure[j-1]+self.ll[j-2]/self.v[j-2]+tau[j] for j in range(2,self.N+1)),name='depart')
+            m.addConstrs((arrival[j]==departure[j-1]+self.ll[j-2]/self.v[j-2] for j in range(2,self.N+1)),name='arri')
+            m.addConstrs((in_vehicle_j[j1,j2]==in_vehicle_j[j1,j2-1]*(1-self.p[j1,j2-1]) for j1,j2 in index_1 if j1!=j2-1),name='in_j')
+            m.addConstrs()
         except gp.GurobiError as e:
             print('Error code'+str(e.errno)+': '+str(e))
         except AttributeError:
