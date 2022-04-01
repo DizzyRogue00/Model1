@@ -93,7 +93,7 @@ class Collaborative(object):
             stop_step=self.N//2
         else:
             stop_step=(self.N+1)//2
-        terminal_stop=self.N//2+1
+        terminal_stop=math.ceil(self.N/2)+1
         temp_={}
         for y in range(1,self.N+1):
             #m = np.array(list(np.arange(y + 1, self.N + 2)))
@@ -360,7 +360,28 @@ class Collaborative(object):
             m.addConstrs((departure[j]==departure[j-1]+self.ll[j-2]/self.v[j-2]+tau[j] for j in range(2,self.N+1)),name='depart')
             m.addConstrs((arrival[j]==departure[j-1]+self.ll[j-2]/self.v[j-2] for j in range(2,self.N+1)),name='arri')
             m.addConstrs((in_vehicle_j[j1,j2]==in_vehicle_j[j1,j2-1]*(1-self.p[j1,j2-1]) for j1,j2 in index_1 if j1!=j2-1),name='in_j')
-            m.addConstrs()
+            m.addConstrs((in_vehicle_j[j1,j2]==board[j1] for j1,j2 in index_1 if j1==j2-1),name='in_j_1')
+            m.addConstrs((in_vehicle[j]==in_vehicle_j.sum('*',j) for j in range(2,self.N+2)),name='inTotal')
+            if n==1:
+                m.addConstrs((phi[j]==self.lambda_[j-1]*self.headway/2 for j in range(1,self.N+1)),name='waiting_1')
+                m.addConstr(inter_tau_2==reduce(operator.add,map(lambda x,y:x*y,current_data[:-1],self.size))/self._unloading_rate/60,name='inter_tau_2_con')
+            else:
+                m.addConstrs((phi[j]==self.lambda_[j-1]*(departure[j]-database[data]['current_result'].getAttr('x',departure)[j])+database[data]['current_result'].getAttr('x',w)[j] for j in range(1,self.N+1)),name='waiting')
+                m.addConstrs((departure[j]-database[data]['current_result'].getAttr('x',departure)[j]>=0 for j in range(1,self.N+1)),name='overtaking_n_1')
+                m.addConstrs((arrival[j]-database[data]['current_result'].getAttr('x',arrival)[j]>=0 for j in range(1,self.N+1)),name='overtaking_n_2')
+                m.addConstr(inter_tau_2==reduce(operator.add,map(lambda x,y:x*y,map(lambda x,y:x-y,current_data[:-1],data[:-1]),self.size)) / self._unloading_rate / 60,name='inter_tau_2_con')
+            m.addConstrs((alight[j]==in_vehicle.prod(self.p,'*',j) for j in range(2,self.N+2)),name='a1')
+            m.addConstr(inter_board_limit_1==phi[1]-self.capacity,name='inter_board_limit_1_con')
+            m.addConstrs((inter_board_limit[j]==phi[j]-(self.capacity-in_vehicle[j]+alight[j]) for j in range(2,self.N+1)),name='inter_board_limit_con')
+            m.addConstr(w[1]==max_(0,inter_board_limit_1), name='moodify_w_1')
+            m.addConstrs((w[j]==max_(0,inter_board_limit[j]) for j in range(2,self.N+1)),name='modify_w_')
+            m.addConstrs((board[j]==phi[j]-w[j] for j in range(1,self.N+1)),name='factual_board')
+            m.addConstrs((self.t_bar(n)[j-1]-departure[j]>=0 for j in range(1,self.N+1)),name='virtual')
+            m.addConstrs((inter_tau_1[j] == board[j] * self.boarding_rate / 60 for j in range(1,self.N+1)), name='inter_tau_1_con')
+            m.addConstrs((tau[j]==inter_tau_1[j] for j in range(2,self.N+1) if j!=math.ceil(self.N/2)+1),name='duration')
+            m.addConstr(tau[math.ceil(self.N/2)+1]==max_(inter_tau_1[math.ceil(self.N/2)+1],inter_tau_2),name='duration_transship')
+            m.optimiza()
+
         except gp.GurobiError as e:
             print('Error code'+str(e.errno)+': '+str(e))
         except AttributeError:
