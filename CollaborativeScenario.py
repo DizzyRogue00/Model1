@@ -288,6 +288,8 @@ class Collaborative(object):
     def __Optimal(self,n,data,database,current_data):
         try:
             m=gp.Model('Bus_Collaborative')
+            m.Params.timeLimit = 100
+            m.setParam('nonconvex', 2)
             index_1=gp.tuplelist([(y,z) for z in range(2,self.N+2) for y in range(1,z)])
             departure = m.addVars(range(1,self.N+1), name='departure')#departure time
             arrival=m.addVars(range(2,self.N+1),name='arrival')#arrival time
@@ -365,11 +367,13 @@ class Collaborative(object):
             if n==1:
                 m.addConstrs((phi[j]==self.lambda_[j-1]*self.headway/2 for j in range(1,self.N+1)),name='waiting_1')
                 m.addConstr(inter_tau_2==reduce(operator.add,map(lambda x,y:x*y,current_data[:-1],self.size))/self._unloading_rate/60,name='inter_tau_2_con')
+                m.addConstrs((inter_tardy_1[k,q] == arrival[math.ceil(self.N / 2) + 1] - self.dd[k, 1, 0, q] for k, q in index),name='inter_tardy_1_con')
             else:
                 m.addConstrs((phi[j]==self.lambda_[j-1]*(departure[j]-database[data]['current_result'].getAttr('x',departure)[j])+database[data]['current_result'].getAttr('x',w)[j] for j in range(1,self.N+1)),name='waiting')
                 m.addConstrs((departure[j]-database[data]['current_result'].getAttr('x',departure)[j]>=0 for j in range(1,self.N+1)),name='overtaking_n_1')
                 m.addConstrs((arrival[j]-database[data]['current_result'].getAttr('x',arrival)[j]>=0 for j in range(1,self.N+1)),name='overtaking_n_2')
                 m.addConstr(inter_tau_2==reduce(operator.add,map(lambda x,y:x*y,map(lambda x,y:x-y,current_data[:-1],data[:-1]),self.size)) / self._unloading_rate / 60,name='inter_tau_2_con')
+                m.addConstrs((inter_tardy_1[k,q]==arrival[math.ceil(self.N/2)+1]-self.dd[k,n,data[self.size.index(k)],q] for k,q in index),name='inter_tardy_1_con')
             m.addConstrs((alight[j]==in_vehicle.prod(self.p,'*',j) for j in range(2,self.N+2)),name='a1')
             m.addConstr(inter_board_limit_1==phi[1]-self.capacity,name='inter_board_limit_1_con')
             m.addConstrs((inter_board_limit[j]==phi[j]-(self.capacity-in_vehicle[j]+alight[j]) for j in range(2,self.N+1)),name='inter_board_limit_con')
@@ -380,12 +384,75 @@ class Collaborative(object):
             m.addConstrs((inter_tau_1[j] == board[j] * self.boarding_rate / 60 for j in range(1,self.N+1)), name='inter_tau_1_con')
             m.addConstrs((tau[j]==inter_tau_1[j] for j in range(2,self.N+1) if j!=math.ceil(self.N/2)+1),name='duration')
             m.addConstr(tau[math.ceil(self.N/2)+1]==max_(inter_tau_1[math.ceil(self.N/2)+1],inter_tau_2),name='duration_transship')
-            m.optimiza()
+            m.addConstrs((inter_tardy_2[j]==max_(0,inter_tardy_1[j]) for j in index),name='inter_tardy_2_con')
+
+            m.optimize()
+
+            if m.status==GRB.OPTIMAL:
+                print(m.status)
+                self._objVal = m.objVal
+                self._result = m.getAttr('x', [in_vehicle_waiting, at_stop_waiting, extra_waiting, tardy_time,total_1,total_2])
+                self._departure = m.getAttr('x', departure)
+                self._arrival = m.getAttr('x', arrival)
+                self._in_vehicle_j = m.getAttr('x', in_vehicle_j)
+                self._in_vehicle = m.getAttr('x', in_vehicle)
+                self._board = m.getAttr('x', board)
+                self._w = m.getAttr('x', w)
+                self._phi = m.getAttr('x', phi)
+                self._tau = m.getAttr('x', tau)
+                self._alight = m.getAttr('x', alight)
+            elif m.status==GRB.TIME_LIMIT:
+                m.Params.timeLimit = 200
+                if m.MIPGap<=0.05:
+                    print(m.status)
+                    print(m.MIPGap)
+                    self._objVal = m.objVal
+                    self._result = m.getAttr('x', [in_vehicle_waiting, at_stop_waiting, extra_waiting, tardy_time, total_1,total_2])
+                    self._departure = m.getAttr('x', departure)
+                    self._arrival = m.getAttr('x', arrival)
+                    self._in_vehicle_j = m.getAttr('x', in_vehicle_j)
+                    self._in_vehicle = m.getAttr('x', in_vehicle)
+                    self._board = m.getAttr('x', board)
+                    self._w = m.getAttr('x', w)
+                    self._phi = m.getAttr('x', phi)
+                    self._tau = m.getAttr('x', tau)
+                    self._alight = m.getAttr('x', alight)
+                else:
+                    m.Params.MIPGap = 0.05
+                    m.optimize()
+                    print("OK")
+                    print(m.status)
+                    self._objVal = m.objVal
+                    self._result = m.getAttr('x', [in_vehicle_waiting, at_stop_waiting, extra_waiting,tardy_time,total_1,total_2])
+                    self._departure = m.getAttr('x', departure)
+                    self._arrival = m.getAttr('x', arrival)
+                    self._in_vehicle_j = m.getAttr('x', in_vehicle_j)
+                    self._in_vehicle = m.getAttr('x', in_vehicle)
+                    self._board = m.getAttr('x', board)
+                    self._w = m.getAttr('x', w)
+                    self._phi = m.getAttr('x', phi)
+                    self._tau = m.getAttr('x', tau)
+                    self._alight = m.getAttr('x', alight)
+            return self._objVal,self._result,self._departure, self._arrival, self._in_vehicle_j, self._in_vehicle, self._board, self._w, self._phi, self._tau, self._alight
 
         except gp.GurobiError as e:
             print('Error code'+str(e.errno)+': '+str(e))
         except AttributeError:
             print('Encounted an attribute error')
+
+    def column_generation(self):
+        self.demand_parcels()
+        range_capacity=[self.dd.select(k,self.M) for k in self.size]
+        max_range_capacity=max(range_capacity)
+        def compare(a,b):
+            return reduce(operator.and_, map(lambda x, y: x <= y, a,b))
+        result=list(filter(lambda x:compare(x,tuple(range_capacity)),product(range(max_range_capacity+1),repeat=len(self.size))))
+        return result
+
+    def dynamic_programming(self):
+        column_name=self.column_generation()
+        df=pd.DataFrame(columns=column_name,index=range(1,self.M))
+
 
 
 
