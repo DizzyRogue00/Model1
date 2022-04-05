@@ -433,7 +433,7 @@ class Collaborative(object):
                     self._phi = m.getAttr('x', phi)
                     self._tau = m.getAttr('x', tau)
                     self._alight = m.getAttr('x', alight)
-            return self._objVal,self._result,self._departure, self._arrival, self._in_vehicle_j, self._in_vehicle, self._board, self._w, self._phi, self._tau, self._alight
+            return m,self._objVal,self._result,self._departure, self._arrival, self._in_vehicle_j, self._in_vehicle, self._board, self._w, self._phi, self._tau, self._alight
 
         except gp.GurobiError as e:
             print('Error code'+str(e.errno)+': '+str(e))
@@ -442,7 +442,7 @@ class Collaborative(object):
 
     def column_generation(self):
         self.demand_parcels()
-        range_capacity=[self.dd.select(k,self.M) for k in self.size]
+        range_capacity=[self.max_disp.select(k,self.M) for k in self.size]
         max_range_capacity=max(range_capacity)
         def compare(a,b):
             return reduce(operator.and_, map(lambda x, y: x <= y, a,b))
@@ -451,7 +451,9 @@ class Collaborative(object):
 
     def dynamic_programming(self):
         column_name=self.column_generation()
-        df=pd.DataFrame(columns=column_name,index=range(1,self.M))
+        df=pd.DataFrame(columns=column_name,index=range(1,self.M+1))
+        df.loc[1]=inf
+
 
 
 
