@@ -285,7 +285,7 @@ class Collaborative(object):
         self.dd=dd
         return self.database_ready,self.database_due,self.max_disp,self.dd
 
-    def __Optimal(self,n,data,database,current_data):
+    def __Optimal(self,n,data=None,database=None,current_data=None):
         try:
             m=gp.Model('Bus_Collaborative')
             m.Params.timeLimit = 100
@@ -390,6 +390,7 @@ class Collaborative(object):
 
             if m.status==GRB.OPTIMAL:
                 print(m.status)
+                self._m=m
                 self._objVal = m.objVal
                 self._result = m.getAttr('x', [in_vehicle_waiting, at_stop_waiting, extra_waiting, tardy_time,total_1,total_2])
                 self._departure = m.getAttr('x', departure)
@@ -406,6 +407,7 @@ class Collaborative(object):
                 if m.MIPGap<=0.05:
                     print(m.status)
                     print(m.MIPGap)
+                    self._m=m
                     self._objVal = m.objVal
                     self._result = m.getAttr('x', [in_vehicle_waiting, at_stop_waiting, extra_waiting, tardy_time, total_1,total_2])
                     self._departure = m.getAttr('x', departure)
@@ -422,6 +424,7 @@ class Collaborative(object):
                     m.optimize()
                     print("OK")
                     print(m.status)
+                    self._m=m
                     self._objVal = m.objVal
                     self._result = m.getAttr('x', [in_vehicle_waiting, at_stop_waiting, extra_waiting,tardy_time,total_1,total_2])
                     self._departure = m.getAttr('x', departure)
@@ -433,7 +436,7 @@ class Collaborative(object):
                     self._phi = m.getAttr('x', phi)
                     self._tau = m.getAttr('x', tau)
                     self._alight = m.getAttr('x', alight)
-            return m,self._objVal,self._result,self._departure, self._arrival, self._in_vehicle_j, self._in_vehicle, self._board, self._w, self._phi, self._tau, self._alight
+            return self._m,self._objVal,self._result,self._departure, self._arrival, self._in_vehicle_j, self._in_vehicle, self._board, self._w, self._phi, self._tau, self._alight
 
         except gp.GurobiError as e:
             print('Error code'+str(e.errno)+': '+str(e))
@@ -452,7 +455,61 @@ class Collaborative(object):
     def dynamic_programming(self):
         column_name=self.column_generation()
         df=pd.DataFrame(columns=column_name,index=range(1,self.M+1))
-        df.loc[1]=inf
+
+        def cal_max(n):
+            a=[self.max_disp.select(k,n) for k in self.size]
+            a=tuple(a)
+            return a
+
+        def compare(a,b):
+            return reduce(operator.and_, map(lambda x, y: x <= y, a,b))
+
+        database={}
+
+        def cal_database_item(n,item):
+            key=tuple(list(item)+[n])
+            if n==1:
+                if reduce(operator.add,map(operator.mul,item,self.size))<=self._parcel_capacity:
+                    if compare(item,cal_max(n)):
+                        self.__Optimal(n,current_data=key)
+                        value={'previous':0,'current_result':self._m}
+                        result_item={key:value}
+                        df.loc[n][item]=self._result[4]
+            else:
+                if compare(item,cal_max(n)):
+                    for i in column_name:
+                        if compare(i,item):
+                            if reduce(operator.add,map(operator.mul,map(operator.sub,item,i),self.size))<=self._parcel_capacity:
+                                previous_key=tuple(list(i)+[n-1])
+                                if database[previous_key]['current_result'] is not inf:
+                                    self.__Optimal(n,previous_key,database,key)
+                                    if n==self.M:
+                                        summation=df.loc[n-1][i]+self._objVal
+                                    else:
+                                        summation=df.loc[n-1][i]+self._result[4]
+                                    if summation<=df.loc[n][item]:
+                                        value={'previous':previous_key,'current_result':self._m}
+                                        result_item={key:value}
+                                        df.loc[n][item]=summation
+
+            database.update(result_item)
+        for n in range(1,self.M+1):
+            df.loc[n]=inf
+            for item in column_name:
+                key = tuple(list(item) + [n])
+                value = {'previous': 0, 'current_result': inf}
+                result_item={key:value}
+                database.update(result_item)
+                cal_database_item(n,item)
+        return database,df
+
+
+
+
+
+
+
+
 
 
 
