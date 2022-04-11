@@ -111,7 +111,7 @@ class Collaborative(object):
             m=list(myiter(m))
             i=0
             for z in range(y+1,self.N+2):
-                temp_dict={temp[y,z]:m[i]}
+                temp_dict={ii:m[i] for ii in temp.select(y,z)}
                 temp_.update(temp_dict)
                 i+=1
         temp_=tupledict(temp_)
@@ -317,9 +317,9 @@ class Collaborative(object):
             m.update()
 
             if n==1:
-                index=[(x,y) for x in self.size for y in range(current_data[current_data.index(x)]+1)]
+                index=[(x,y) for x in self.size for y in range(current_data[self.size.index(x)]+1)]
                 index=gp.tuplelist(index)
-                inter_tardy_1 = m.addVars(index, name='inter_tardy_1')
+                inter_tardy_1 = m.addVars(index,lb=-GRB.INFINITY, name='inter_tardy_1')
                 inter_tardy_2 = m.addVars(index, name='inter_tardy_2')
                 item1=gp.quicksum(self.lambda_[j-1]/2*pow(departure[j],2) for j in range(1,self.N+1))
                 item2=gp.quicksum((in_vehicle[j+1]-in_vehicle_j.prod(self.p,'*',j+1))*tau[j+1] for j in range(1,self.N))
@@ -330,9 +330,9 @@ class Collaborative(object):
                 m.setObjective(self.theta[0]*item1+self.theta[1]*item2+self.theta[2]*item3+self.theta[3]*item4,sense=gp.GRB.MINIMIZE)
 
             else:
-                index=[(x,y) for x in self.size for y in range(current_data[current_data.index(x)]-data[data.index(x)]+1)]
+                index=[(x,y) for x in self.size for y in range(current_data[self.size.index(x)]-data[self.size.index(x)]+1)]
                 index=gp.tuplelist(index)
-                inter_tardy_1=m.addVars(index,name='inter_tardy_1')
+                inter_tardy_1=m.addVars(index,lb=-GRB.INFINITY,name='inter_tardy_1')
                 inter_tardy_2 = m.addVars(index, name='inter_tardy_2')
                 item11=gp.quicksum(pow((departure[j]-database[data]['current_result'].getAttr('x',departure)[j]),2)*self.lambda_[j-1]/2 for j in range(1,self.N+1))
                 item1=item11+gp.quicksum(self.lambda_[j-1]/2*pow((self.t_bar(n)[j-1]-departure[j]),2) for j in range(1,self.N+1))
@@ -343,7 +343,14 @@ class Collaborative(object):
 
                 m.setObjective(self.theta[0]*item1+self.theta[1]*item2+self.theta[2]*item3+self.theta[3]*item4,sense=gp.GRB.MINIMIZE)
 
-            if n!= self.M:
+            if n==1:
+                m.addConstr(in_vehicle_waiting==item2,name='in_vehicle_cost')
+                m.addConstr(at_stop_waiting==item1,name='at_stop_cost')
+                m.addConstr(extra_waiting==item33,name='extra_cost')
+                m.addConstr(tardy_time == item4, name='tardiness_cost')
+                m.addConstr(total_1==self.theta[0]*item1+self.theta[1]*item2+self.theta[2]*item33+self.theta[3]*item4,name='total_with_weight')
+                m.addConstr(total_2==item1+item2+item33+item4, name='total_without_weight')
+            elif n!= self.M:
                 m.addConstr(in_vehicle_waiting==item2,name='in_vehicle_cost')
                 m.addConstr(at_stop_waiting==item11,name='at_stop_cost')
                 m.addConstr(extra_waiting==item33,name='extra_cost')
@@ -358,21 +365,22 @@ class Collaborative(object):
                 m.addConstr(total_1==self.theta[0]*item1+self.theta[1]*item2+self.theta[2]*item3+self.theta[3]*item4,name='total_with_weight')
                 m.addConstr(total_2==item1+item2+item3+item4, name='total_without_weight')
 
-            m.addContr(departure[1]==self.headway*n,name='depart_1')
+            m.addConstr(departure[1]==self.headway*n,name='depart_1')
             m.addConstrs((departure[j]==departure[j-1]+self.ll[j-2]/self.v[j-2]+tau[j] for j in range(2,self.N+1)),name='depart')
             m.addConstrs((arrival[j]==departure[j-1]+self.ll[j-2]/self.v[j-2] for j in range(2,self.N+1)),name='arri')
             m.addConstrs((in_vehicle_j[j1,j2]==in_vehicle_j[j1,j2-1]*(1-self.p[j1,j2-1]) for j1,j2 in index_1 if j1!=j2-1),name='in_j')
             m.addConstrs((in_vehicle_j[j1,j2]==board[j1] for j1,j2 in index_1 if j1==j2-1),name='in_j_1')
             m.addConstrs((in_vehicle[j]==in_vehicle_j.sum('*',j) for j in range(2,self.N+2)),name='inTotal')
+
             if n==1:
                 m.addConstrs((phi[j]==self.lambda_[j-1]*self.headway/2 for j in range(1,self.N+1)),name='waiting_1')
-                m.addConstr(inter_tau_2==reduce(operator.add,map(lambda x,y:x*y,current_data[:-1],self.size))/self._unloading_rate/60,name='inter_tau_2_con')
-                m.addConstrs((inter_tardy_1[k,q] == arrival[math.ceil(self.N / 2) + 1] - self.dd[k, 1, 0, q] for k, q in index),name='inter_tardy_1_con')
+                m.addConstr(inter_tau_2==reduce(operator.add,map(lambda x,y:x*y,current_data[:-1],self.size))*self._unloading_rate/60,name='inter_tau_2_con')
+                m.addConstrs((inter_tardy_1[k,q]==arrival[math.ceil(self.N/2)+1]-self.dd[k,1,0,q] for k,q in index), name='inter_tardy_1_con')
             else:
                 m.addConstrs((phi[j]==self.lambda_[j-1]*(departure[j]-database[data]['current_result'].getAttr('x',departure)[j])+database[data]['current_result'].getAttr('x',w)[j] for j in range(1,self.N+1)),name='waiting')
                 m.addConstrs((departure[j]-database[data]['current_result'].getAttr('x',departure)[j]>=0 for j in range(1,self.N+1)),name='overtaking_n_1')
-                m.addConstrs((arrival[j]-database[data]['current_result'].getAttr('x',arrival)[j]>=0 for j in range(1,self.N+1)),name='overtaking_n_2')
-                m.addConstr(inter_tau_2==reduce(operator.add,map(lambda x,y:x*y,map(lambda x,y:x-y,current_data[:-1],data[:-1]),self.size)) / self._unloading_rate / 60,name='inter_tau_2_con')
+                m.addConstrs((arrival[j]-database[data]['current_result'].getAttr('x',arrival)[j]>=0 for j in range(2,self.N+1)),name='overtaking_n_2')
+                m.addConstr(inter_tau_2==reduce(operator.add,map(lambda x,y:x*y,map(lambda x,y:x-y,current_data[:-1],data[:-1]),self.size)) * self._unloading_rate / 60,name='inter_tau_2_con')
                 m.addConstrs((inter_tardy_1[k,q]==arrival[math.ceil(self.N/2)+1]-self.dd[k,n,data[self.size.index(k)],q] for k,q in index),name='inter_tardy_1_con')
             m.addConstrs((alight[j]==in_vehicle.prod(self.p,'*',j) for j in range(2,self.N+2)),name='a1')
             m.addConstr(inter_board_limit_1==phi[1]-self.capacity,name='inter_board_limit_1_con')
@@ -381,7 +389,7 @@ class Collaborative(object):
             m.addConstrs((w[j]==max_(0,inter_board_limit[j]) for j in range(2,self.N+1)),name='modify_w_')
             m.addConstrs((board[j]==phi[j]-w[j] for j in range(1,self.N+1)),name='factual_board')
             m.addConstrs((self.t_bar(n)[j-1]-departure[j]>=0 for j in range(1,self.N+1)),name='virtual')
-            m.addConstrs((inter_tau_1[j] == board[j] * self.boarding_rate / 60 for j in range(1,self.N+1)), name='inter_tau_1_con')
+            m.addConstrs((inter_tau_1[j] == board[j] * self.boarding_rate / 60 for j in range(2,self.N+1)), name='inter_tau_1_con')
             m.addConstrs((tau[j]==inter_tau_1[j] for j in range(2,self.N+1) if j!=math.ceil(self.N/2)+1),name='duration')
             m.addConstr(tau[math.ceil(self.N/2)+1]==max_(inter_tau_1[math.ceil(self.N/2)+1],inter_tau_2),name='duration_transship')
             m.addConstrs((inter_tardy_2[j]==max_(0,inter_tardy_1[j]) for j in index),name='inter_tardy_2_con')
@@ -446,6 +454,7 @@ class Collaborative(object):
     def column_generation(self):
         self.demand_parcels()
         range_capacity=[self.max_disp.select(k,self.M) for k in self.size]
+        range_capacity=[i for item in range_capacity for i in item]
         max_range_capacity=max(range_capacity)
         def compare(a,b):
             return reduce(operator.and_, map(lambda x, y: x <= y, a,b))
@@ -458,7 +467,8 @@ class Collaborative(object):
 
         def cal_max(n):
             a=[self.max_disp.select(k,n) for k in self.size]
-            a=tuple(a)
+            b=[i for item in a for i in item]
+            a=tuple(b)
             return a
 
         def compare(a,b):
@@ -466,7 +476,7 @@ class Collaborative(object):
 
         database={}
 
-        def cal_database_item(n,item):
+        def cal_database_item(database,df,n,item):
             key=tuple(list(item)+[n])
             if n==1:
                 if reduce(operator.add,map(operator.mul,item,self.size))<=self._parcel_capacity:
@@ -475,6 +485,7 @@ class Collaborative(object):
                         value={'previous':0,'current_result':self._m}
                         result_item={key:value}
                         df.loc[n][item]=self._result[4]
+                        database.update(result_item)
             else:
                 if compare(item,cal_max(n)):
                     for i in column_name:
@@ -491,8 +502,8 @@ class Collaborative(object):
                                         value={'previous':previous_key,'current_result':self._m}
                                         result_item={key:value}
                                         df.loc[n][item]=summation
+                                        database.update(result_item)
 
-            database.update(result_item)
         for n in range(1,self.M+1):
             df.loc[n]=inf
             for item in column_name:
@@ -500,7 +511,11 @@ class Collaborative(object):
                 value = {'previous': 0, 'current_result': inf}
                 result_item={key:value}
                 database.update(result_item)
-                cal_database_item(n,item)
+                #print(n)
+                #print(item)
+                #print(database)
+                #print(df)
+                cal_database_item(database,df,n,item)
         return database,df
 
 
