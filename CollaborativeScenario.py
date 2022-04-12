@@ -516,7 +516,233 @@ class Collaborative(object):
                 #print(database)
                 #print(df)
                 cal_database_item(database,df,n,item)
-        return database,df
+
+        self.database=database
+        self.df=df
+        return self.database,self.df
+
+    def __call__(self,*args,**kwargs):
+        results=self.dynamic_programming()
+        return results
+
+    def directory(self,name:str):
+        parent_dir=os.getcwd()
+        filepath=os.path.join(parent_dir,str(name))
+        if not os.path.exists(name):
+            try:
+                os.makedirs(filepath, exist_ok=True)
+                print("Directory {} created successfully".format(name))
+            except OSError as error:
+                print("Directory {%s} cannot be created".format(name))
+        else:
+            print("Directory {} has existed".format(name))
+        return filepath
+
+    def combine_path(self,name:str,filename:str,fileformat:str):
+        filepath=name+'/'+filename+'.'+fileformat
+        return filepath
+
+    def process(self):
+        column_index=self.df.columns
+        for i in range(len(column_index)-1,-1,-1):
+            if self.df.loc[self.M][i] is not inf:
+                data=i
+                break
+        final_data=tuple(list(data)+[self.M])
+
+        def traverse(data,l=[]):
+            if self.database[data]['previous'] is 0:
+                return l.append(data)
+            else:
+                return l.append(traverse(self.database[data]['previous'],l))
+
+    def Analysis(self):
+        self.dynamic_programming()
+        folder=self.directory('Results_ZC')
+
+        result=np.array(self._result).reshape(1,len(self._result))
+        data_result=pd.DataFrame(result,columns=["In-vehicle","At-stop","Extra"],index=["No control"])
+        data_result['Total']=data_result.apply(lambda x: x.sum(),axis=1)
+        filedata_result_csv=self.combine_path(folder,'results','csv')
+        #data_result.to_csv('Results/results.csv',mode="a+")
+        data_result.to_csv(filedata_result_csv, mode="a+")
+        filedata_result_excel = self.combine_path(folder, 'results', 'xlsx')
+        #data_result.to_excel('Results/results.xlsx',sheet_name="Sheet1")
+        data_result.to_excel(filedata_result_excel, sheet_name="Sheet1")
+
+        print(self._in_vehicle.select(1,'*'))
+        def generate_in_vehicle(item:list):
+            temp=[0]
+            a=copy.deepcopy(item)
+            temp.extend(a)
+            return temp
+        data_in_vehicle={str(i):generate_in_vehicle(self._in_vehicle.select(i,'*')) for i in range(1,self.M+1)}
+        data_in_vehicle=pd.DataFrame(data_in_vehicle,index=range(1,self.N+2))
+        #print(data_in_vehicle.head())
+        print(data_in_vehicle)
+        #plt.figure(num=2, facecolor='white', edgecolor='black')
+        markers_ZC=[".","^","1","s","*","+","x","D"]
+        linestyle=['-','--','-.',':']*2
+        color = ['#7B113A', "#150E56", "#1597BB", "#8FD6E1", "#E02401", "#F78812", "#Ab6D23", "#51050F"]
+        style=list(map(lambda x,y:x+y,markers_ZC,linestyle))
+        plt.rcParams['font.family'] = 'serif'
+        plt.rcParams['font.serif'] = 'Times New Roman'
+        #plt.subplot(facecolor="w")
+        #data_in_vehicle.plot(style=style, color=color, legend=True, linewidth=2.5)
+        data_in_vehicle.plot(style=style, color=color, legend=True, linewidth=2.5)
+        ax = plt.gca()
+        ax.axhline(y=self.capacity, color='k', linestyle='-')
+        ax.tick_params(top=False,bottom=True,left=True,right=False,direction='inout')
+        ax.tick_params(which='major',width=1.5)
+        ax.set_facecolor("w")
+        ax.spines['bottom'].set(visible=True, color='k', linewidth=0.5)
+        ax.spines['left'].set(visible=True, color='k', linewidth=0.5)
+        plt.xticks(range(1, self.N + 2), fontweight='bold')
+        plt.yticks(None, None, fontweight='bold')
+        plt.xlabel("Bus Stations", fontdict=dict(fontweight='bold'))
+        plt.ylabel('Load', fontweight='bold')
+        legend_label=list(map(lambda x,y:x+y,['Bus ']*len(list(data_in_vehicle.columns)),list(data_in_vehicle.columns)))
+        #ax.legend(loc='upper right')
+        lg=ax.legend(legend_label,loc='upper left',bbox_to_anchor=(1.05,0.95),markerscale=1.5,framealpha=0.5,facecolor='white',edgecolor='black',borderaxespad=0)
+        plt.grid(False)
+        plt.tight_layout()
+        #plt.show()
+        filename_svg=self.combine_path(folder,"Passenger Loads","svg")
+        #plt.savefig('Results/Average passenger arrival rates at each bus stations.svg')
+        plt.savefig(filename_svg,bbox_extra_artists=(lg,),bbox_inches='tight')
+        filename_pdf = self.combine_path(folder, "Passenger Loads", "pdf")
+        #plt.savefig('Results/Average passenger arrival rates at each bus stations.pdf',dpi=1000)
+        plt.savefig(filename_pdf, dpi=1000,bbox_extra_artists=(lg,),bbox_inches='tight')
+
+
+        #prepare data
+        data_passenger=[[i,j,self._board.select(i,j)[0],self._w.select(i,j)[0],self._phi.select(i,j)[0]] for i in range(1,self.M+1) for j in range(1,self.N+1)]
+        data_passenger=pd.DataFrame(data_passenger,columns=['Bus','Stop','Boarding','Still need to wait','Total wait'])
+        #print(data_passenger)
+        x_var='Stop'
+        groupby_var='Bus'
+        data_b=data_passenger.groupby(groupby_var)
+        bar_x=np.arange(1,self.N+1)
+        bar_width=1/(self.M+1)
+        bar_tick_label=list(map(lambda x:str(x),bar_x))
+        colors = [plt.cm.Spectral(i / float(2 - 1)) for i in range(2)]
+        #colors=['#8E354A','#261E47']
+        plt.figure(num=3, facecolor='white', edgecolor='black')
+        plt.rcParams['font.family']='serif'
+        plt.rcParams['font.serif']='Times New Roman'
+        for i,df in data_b:
+            plt.bar(df[x_var]+bar_width*(i-1),df['Boarding'],width=bar_width,align='center',color=colors[0])
+            plt.bar(df[x_var] + bar_width * (i - 1), df['Still need to wait'], bottom=df['Boarding'],width=bar_width, align='center',
+                    color=colors[1])
+
+        ax = plt.gca()
+        ax.set_facecolor("w")
+        ax.spines['bottom'].set(visible=True, color='k', linewidth=0.5)
+        ax.spines['left'].set(visible=True, color='k', linewidth=0.5)
+        ax.spines['top'].set(visible=True, color='k', linewidth=0.5)
+        ax.spines['right'].set(visible=True, color='k', linewidth=0.5)
+        plt.xticks(np.arange(1, self.N + 1) + bar_width * (self.M - 1) / 2, bar_tick_label,fontweight='bold')
+        plt.yticks(None, None, fontweight='bold')
+        plt.xlabel("Bus Stations", fontdict=dict(fontweight='bold'))
+        plt.ylabel('Passengers', fontweight='bold')
+        legend_label = ['Boarding','Stranded']
+        # ax.legend(loc='upper right')
+        lg = ax.legend(legend_label,loc='upper right',framealpha=0.5,
+                       facecolor='white', edgecolor='black')
+        plt.grid(False)
+        filename_svg = self.combine_path(folder, "About to board and stranded passengers because of capacity limit", "svg")
+        plt.savefig(filename_svg)
+        filename_pdf = self.combine_path(folder, "About to board and stranded passengers because of capacity limit", "pdf")
+        plt.savefig(filename_pdf,dpi=1000)
+
+        x_var_average = 'Stop'
+        data_b_average = data_passenger.groupby(x_var_average).mean()
+        data_b_average=data_b_average[['Boarding', 'Still need to wait','Total wait']]
+        #data_b_average=data_b_average['Boarding','Still need to wait','Total wait']
+        bar_x = np.arange(1, self.N + 1)
+        bar_width = 0.5
+        bar_tick_label = list(map(lambda x: str(x), bar_x))
+        #colors = [plt.cm.Spectral(i / float(2 - 1)) for i in range(2)]
+        colors=['#9F353A','#66327C']
+        #print(data_b_average)
+        plt.figure(num=4, facecolor='white', edgecolor='black')
+        plt.rcParams['font.family']='serif'
+        plt.rcParams['font.serif']='Times New Roman'
+        plt.bar(data_b_average.index,data_b_average['Boarding'],width=bar_width,align='center',color=colors[0])
+        plt.bar(data_b_average.index,data_b_average['Still need to wait'],bottom=data_b_average['Boarding'],width=bar_width,color=colors[1],align='center')
+        ax = plt.gca()
+        ax.set_facecolor("w")
+        ax.spines['bottom'].set(visible=True, color='k', linewidth=0.5)
+        ax.spines['left'].set(visible=True, color='k', linewidth=0.5)
+        ax.spines['top'].set(visible=True, color='k', linewidth=0.5)
+        ax.spines['right'].set(visible=True, color='k', linewidth=0.5)
+        plt.xticks(range(1,self.N+1),bar_tick_label,fontweight='bold')
+        plt.yticks(fontweight='bold')
+        plt.xlabel("Bus Stations", fontdict=dict(fontweight='bold'))
+        plt.ylabel('Passengers', fontweight='bold')
+        legend_label = ['Boarding', 'Stranded']
+        ax.legend(legend_label, loc='upper right', framealpha=0.5,
+                       facecolor='white')
+        plt.grid(False)
+        filename_svg = self.combine_path(folder, "Average number of about to board and stranded passengers because of capacity limit",
+                                         "svg")
+        plt.savefig(filename_svg)
+        filename_pdf = self.combine_path(folder, "Average about to board and stranded passengers because of capacity limit",
+                                         "pdf")
+        plt.savefig(filename_pdf, dpi=1000)
+
+        #route trajectory
+        data_trajectory=[[self._departure.select(i,1)[0]] for i in range(1,self.M+1)]
+        [data_trajectory[i-1].extend([self._arrival.select(i,j)[0],self._departure.select(i,j)[0]]) for i in range(1,self.M+1) for j in range(2,self.N+1)]
+        [data_trajectory[i-1].extend([self._departure.select(i,self.N)[0]+self.ll[self.N-1]/self.v[self.N-1]]) for i in range(1,self.M+1)]
+        data_trajectory=np.array(data_trajectory).transpose()
+        column_name=list(map(str,range(1,self.M+1)))
+        data_trajectory=pd.DataFrame(data_trajectory,columns=column_name)
+        temp_list=list(zip(range(1,self.N+1),range(1,self.N+1)))
+        temp_list=[list(i) for i in temp_list]
+        temp_list=list(reduce(lambda x,y:x+y,temp_list,[]))
+        temp_list.pop(0)
+        temp_list.append(self.N+1)
+        #print(temp_list)
+        data_trajectory['Stop']=temp_list
+        print(data_trajectory)
+        #print(type(data_trajectory))
+        plt.figure(num=5, facecolor='white', edgecolor='black')
+        plt.rcParams['font.family']='serif'
+        plt.rcParams['font.serif']='Times New Roman'
+        colors=[plt.cm.get_cmap('tab20b')(i/float(self.M-1)) for i in range(self.M)]
+        color_count=0
+        for col in data_trajectory.columns:
+            if col !='Stop':
+                plt.plot(data_trajectory[col],data_trajectory['Stop'],'.--',color=colors[color_count])
+                color_count+=1
+
+        ax=plt.gca()
+        ax.set_facecolor('w')
+        ax.spines['bottom'].set(visible=True, color='k', linewidth=0.5)
+        ax.spines['left'].set(visible=True, color='k', linewidth=0.5)
+        ax.spines['top'].set(visible=True, color='k', linewidth=0.5)
+        ax.spines['right'].set(visible=True, color='k', linewidth=0.5)
+        y_tick_label=list(map(str,range(1,self.N+1)))
+        y_tick_label.append('1')
+        plt.yticks(range(1,self.N+2),y_tick_label,fontweight='bold')
+        plt.ylim(bottom=1)
+        plt.xticks(None,None,fontweight='bold')
+        plt.xlim(left=self.headway)
+        ax.tick_params(top=False,bottom=True,left=True,right=False)
+        ax.tick_params('y',which='major',direction='inout')
+        ax.tick_params('x',which='both',direction='out')
+        plt.xlabel('Time',fontdict=dict(fontweight='bold'))
+        plt.ylabel('Bus Stations',fontweight='bold')
+        legend_label=list(map(lambda x,y:x+y,['Bus ']*len(list(data_trajectory.columns[:-1])),list(data_trajectory.columns[:-1])))
+        lg=ax.legend(legend_label,loc='upper left',bbox_to_anchor=(1,1),markerscale=1.5,framealpha=0.8,facecolor='w',borderaxespad=0)
+        #lg=ax.legend(legend_label,loc='lower right')
+        plt.tight_layout()
+        #plt.show()
+        filename_svg = self.combine_path(folder, "Bus Trajectory", "svg")
+        plt.savefig(filename_svg,bbox_extra_artists=(lg,),bbox_inches='tight')
+        filename_pdf = self.combine_path(folder, "Bus Trajectory", "pdf")
+        plt.savefig(filename_pdf, dpi=1000,bbox_extra_artists=(lg,),bbox_inches='tight')
 
 
 
