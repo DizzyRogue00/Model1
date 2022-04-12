@@ -14,6 +14,8 @@ import random
 #from operator import*
 import operator
 from numpy import inf
+from openpyxl import load_workbook
+import pathlib
 sb.set()
 
 class Collaborative(object):
@@ -552,13 +554,80 @@ class Collaborative(object):
 
         def traverse(data,l=[]):
             if self.database[data]['previous'] is 0:
-                return l.append(data)
+                l.insert(0,data)
+                return l
             else:
-                return l.append(traverse(self.database[data]['previous'],l))
+                l.insert(0,data)
+                return traverse(self.database[data]['previous'],l)
+
+        def accumulate_diff(iterable,func):
+            it=iter(iterable)
+            try:
+                total=next(it)
+            except StopIteration:
+                return
+            yield total
+            element1=total
+            for element in it:
+                total=func(element1,element)
+                element1=element
+                yield total
+
+        def tuple_sub(a,b):
+            return tuple(b[i]-a[i] for i in range(len(a)))
+
+        result=traverse(final_data,[])
+        result_slice=[i[:-1] for i in result]
+        result_load=list(accumulate_diff(result_slice,tuple_sub))
+
+        def tuple_prod(a,b):
+            return reduce(operator.add,map(operator.mul,a,b))
+
+        result_loadParcel=[tuple_prod(i,self.size) for i in result_load]
+
+        return result,result_slice,result_load,result_loadParcel
+
 
     def Analysis(self):
         self.dynamic_programming()
+        process_result=self.process()
         folder=self.directory('Results_ZC')
+
+        def result_add(a,b):
+            return [a[i]+b[i] for i in range(len(a))]
+
+        result_list=[self.database[i]['current_result'].getAttr('x', [
+            self.database[i]['current_result'].getVarByName('in_vehicle_waiting'),
+            self.database[i]['current_result'].getVarByName('at_stop_waiting'),
+            self.database[i]['current_result'].getVarByName('extra_waiting'),
+            self.database[i]['current_result'].getVarByName('tardy_time'),
+            self.database[i]['current_result'].getVarByName('total_1'),
+            self.database[i]['current_result'].getVarByName('total_2')]) for i in process_result[0]]
+        result_temp=reduce(result_add,result_list)
+        result=result_temp[:4]+[result_temp[-1]]
+        data_result = pd.DataFrame(result, columns=["In-vehicle", "At-stop", "Extra", "Tardiness","Total"], index=["FTNC"])
+        filename='results_'+'Demand_'+str(self.demand)
+        filedata_result_csv = self.combine_path(folder, filename, 'csv')
+        data_result.to_csv(filedata_result_csv,mode='a+')
+        filedata_result_excel = self.combine_path(folder, filename, 'xlsx')
+        path=pathlib.Path(filedata_result_excel)
+        with pd.ExcelWriter('test.xlsx', engine='openpyxl') as writer:
+            d.to_excel(writer, sheet_name='sheet1')
+        with pd.ExcelWriter('test.xlsx', engine='openpyxl', mode='a') as writer:
+            df2.to_excel(writer, sheet_name='sheet2')
+        if path.exists():
+            writer = pd.ExcelWriter(filedata_result_excel, engine='openpyxl')
+            book = load_workbook(writer.path)
+            writer.book = book
+            data_result.to_excel(excel_writer=writer, sheet_name="FTNC_Demand=5")
+            writer.save()
+            writer.close()
+        else:
+            writer=pd.ExcelWriter(filedata_result_excel,engine='openpyxl')
+            data_result.to_excel(writer,sheet_name="FTNC_Demand=5")
+            writer.save()
+            writer.close()
+
 
         result=np.array(self._result).reshape(1,len(self._result))
         data_result=pd.DataFrame(result,columns=["In-vehicle","At-stop","Extra"],index=["No control"])
