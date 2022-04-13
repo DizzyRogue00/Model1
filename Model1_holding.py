@@ -546,7 +546,14 @@ class Model1(object):
         data_result.to_csv(filedata_result_csv, mode="a+")
         filedata_result_excel = self.combine_path(folder, 'results', 'xlsx')
         #data_result.to_excel('Results/results.xlsx',sheet_name="Sheet1")
-        data_result.to_excel(filedata_result_excel, sheet_name="Sheet2")
+        path=pathlib.Path(filedata_result_excel)
+        if path.exists():
+            with pd.ExcelWriter(filedata_result_excel,engine='openpyxl',mode='a') as writer:
+                data_result.to_excel(writer,sheet_name="HC")
+        else:
+            with pd.ExcelWriter(filedata_result_excel,engine='openpyxl') as writer:
+                data_result.to_excel(writer,sheet_name="HC")
+        #data_result.to_excel(filedata_result_excel, sheet_name="Sheet2")
 
         print(self._in_vehicle.select(1,'*'))
         def generate_in_vehicle(item:list):

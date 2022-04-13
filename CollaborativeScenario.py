@@ -611,44 +611,22 @@ class Collaborative(object):
         data_result.to_csv(filedata_result_csv,mode='a+')
         filedata_result_excel = self.combine_path(folder, filename, 'xlsx')
         path=pathlib.Path(filedata_result_excel)
-        with pd.ExcelWriter('test.xlsx', engine='openpyxl') as writer:
-            d.to_excel(writer, sheet_name='sheet1')
-        with pd.ExcelWriter('test.xlsx', engine='openpyxl', mode='a') as writer:
-            df2.to_excel(writer, sheet_name='sheet2')
+        sheet_name="FTNC_Demand"+str(self.demand)
         if path.exists():
-            writer = pd.ExcelWriter(filedata_result_excel, engine='openpyxl')
-            book = load_workbook(writer.path)
-            writer.book = book
-            data_result.to_excel(excel_writer=writer, sheet_name="FTNC_Demand=5")
-            writer.save()
-            writer.close()
+            with pd.ExcelWriter(filedata_result_excel,engine='openpyxl',mode='a') as writer:
+                data_result.to_excel(writer,sheet_name=sheet_name)
         else:
-            writer=pd.ExcelWriter(filedata_result_excel,engine='openpyxl')
-            data_result.to_excel(writer,sheet_name="FTNC_Demand=5")
-            writer.save()
-            writer.close()
+            with pd.ExcelWriter(filedata_result_excel,engine='openpyxl') as writer:
+                data_result.to_excel(writer,sheet_name=sheet_name)
 
-
-        result=np.array(self._result).reshape(1,len(self._result))
-        data_result=pd.DataFrame(result,columns=["In-vehicle","At-stop","Extra"],index=["No control"])
-        data_result['Total']=data_result.apply(lambda x: x.sum(),axis=1)
-        filedata_result_csv=self.combine_path(folder,'results','csv')
-        #data_result.to_csv('Results/results.csv',mode="a+")
-        data_result.to_csv(filedata_result_csv, mode="a+")
-        filedata_result_excel = self.combine_path(folder, 'results', 'xlsx')
-        #data_result.to_excel('Results/results.xlsx',sheet_name="Sheet1")
-        data_result.to_excel(filedata_result_excel, sheet_name="Sheet1")
-
-        print(self._in_vehicle.select(1,'*'))
         def generate_in_vehicle(item:list):
             temp=[0]
             a=copy.deepcopy(item)
             temp.extend(a)
             return temp
-        data_in_vehicle={str(i):generate_in_vehicle(self._in_vehicle.select(i,'*')) for i in range(1,self.M+1)}
+        data_in_vehicle={str(i):
+                             generate_in_vehicle(self.database[process_result[0][i-1]]['current_result'].getAttr('x',self.database[process_result[0][i-1]]['current_result'].getVarByName('in_vehicle'))) for i in range(1,self.M+1)}
         data_in_vehicle=pd.DataFrame(data_in_vehicle,index=range(1,self.N+2))
-        #print(data_in_vehicle.head())
-        print(data_in_vehicle)
         #plt.figure(num=2, facecolor='white', edgecolor='black')
         markers_ZC=[".","^","1","s","*","+","x","D"]
         linestyle=['-','--','-.',':']*2
@@ -676,18 +654,22 @@ class Collaborative(object):
         plt.grid(False)
         plt.tight_layout()
         #plt.show()
-        filename_svg=self.combine_path(folder,"Passenger Loads","svg")
+        filename="Passengers Loads under Freight Transport when demand is "+str(self.demand)
+        filename_svg=self.combine_path(folder,filename,"svg")
         #plt.savefig('Results/Average passenger arrival rates at each bus stations.svg')
         plt.savefig(filename_svg,bbox_extra_artists=(lg,),bbox_inches='tight')
-        filename_pdf = self.combine_path(folder, "Passenger Loads", "pdf")
+        filename_pdf = self.combine_path(folder, filename, "pdf")
         #plt.savefig('Results/Average passenger arrival rates at each bus stations.pdf',dpi=1000)
         plt.savefig(filename_pdf, dpi=1000,bbox_extra_artists=(lg,),bbox_inches='tight')
 
-
         #prepare data
-        data_passenger=[[i,j,self._board.select(i,j)[0],self._w.select(i,j)[0],self._phi.select(i,j)[0]] for i in range(1,self.M+1) for j in range(1,self.N+1)]
-        data_passenger=pd.DataFrame(data_passenger,columns=['Bus','Stop','Boarding','Still need to wait','Total wait'])
-        #print(data_passenger)
+        data_passenger=[
+            [i,j,self.database[process_result[0][i-1]]['current_result'].getAttr('x',self.database[process_result[0][i-1]]['current_result'].getVarByName('board'))[j-1],
+             self.database[process_result[0][i-1]]['current_result'].getAttr('x',self.database[process_result[0][i-1]]['current_result'].getVarByName('w'))[j-1],
+             self.database[process_result[0][i-1]]['current_result'].getAttr('x',self.database[process_result[0][i-1]]['current_result'].getVarByName('phi'))[j - 1]
+            ] for i in range(1,self.M+1) for j in range(1,self.N+1)
+        ]
+        data_passenger=pd.DataFrame(data_passenger,colimns=['Bus','Stop','Boarding','Still need to wait','Total wait'])
         x_var='Stop'
         groupby_var='Bus'
         data_b=data_passenger.groupby(groupby_var)
@@ -719,9 +701,10 @@ class Collaborative(object):
         lg = ax.legend(legend_label,loc='upper right',framealpha=0.5,
                        facecolor='white', edgecolor='black')
         plt.grid(False)
-        filename_svg = self.combine_path(folder, "About to board and stranded passengers because of capacity limit", "svg")
+        filename="About to board and stranded passengers because of capacity limit under freight transport when demand is "+str(self.demand)
+        filename_svg = self.combine_path(folder, filename, "svg")
         plt.savefig(filename_svg)
-        filename_pdf = self.combine_path(folder, "About to board and stranded passengers because of capacity limit", "pdf")
+        filename_pdf = self.combine_path(folder, filename, "pdf")
         plt.savefig(filename_pdf,dpi=1000)
 
         x_var_average = 'Stop'
@@ -753,20 +736,39 @@ class Collaborative(object):
         ax.legend(legend_label, loc='upper right', framealpha=0.5,
                        facecolor='white')
         plt.grid(False)
-        filename_svg = self.combine_path(folder, "Average number of about to board and stranded passengers because of capacity limit",
-                                         "svg")
+        filename="Average number of about to board and stranded passengers because of capacity limit under freight transport when demand is "+str(self.demand)
+        filename_svg = self.combine_path(folder, filename, "svg")
         plt.savefig(filename_svg)
-        filename_pdf = self.combine_path(folder, "Average about to board and stranded passengers because of capacity limit",
-                                         "pdf")
+        filename_pdf = self.combine_path(folder, filename,"pdf")
         plt.savefig(filename_pdf, dpi=1000)
 
         #route trajectory
-        data_trajectory=[[self._departure.select(i,1)[0]] for i in range(1,self.M+1)]
-        [data_trajectory[i-1].extend([self._arrival.select(i,j)[0],self._departure.select(i,j)[0]]) for i in range(1,self.M+1) for j in range(2,self.N+1)]
-        [data_trajectory[i-1].extend([self._departure.select(i,self.N)[0]+self.ll[self.N-1]/self.v[self.N-1]]) for i in range(1,self.M+1)]
+        data_trajectory=[[self.database[process_result[0][i-1]]['current_result'].getAttr('x',self.database[process_result[0][i-1]]['current_result'].getVarByName('departure'))[0]] for i in range(1,self.M+1)]
+        [
+            data_trajectory[i-1].extend(
+                [
+                    self.database[process_result[0][i - 1]]['current_result'].getAttr('x', self.database[
+                        process_result[0][i - 1]]['current_result'].getVarByName('arrival'))[j-1],
+                    self.database[process_result[0][i - 1]]['current_result'].getAttr('x', self.database[
+                        process_result[0][i - 1]]['current_result'].getVarByName('departure'))[j-1]
+                ]
+            )
+            for i in range(1,self.M+1) for j in range(2,self.N+1)
+        ]
+        [
+            data_trajectory[i-1].extend(
+                [
+                    self.database[process_result[0][i - 1]]['current_result'].getAttr('x', self.database[
+                        process_result[0][i - 1]]['current_result'].getVarByName('departure'))[self.N-1]+self.ll[self.N-1]/self.v[self.N-1]
+                ]
+            )
+            for i in range(1,self.M+1)
+        ]
         data_trajectory=np.array(data_trajectory).transpose()
         column_name=list(map(str,range(1,self.M+1)))
         data_trajectory=pd.DataFrame(data_trajectory,columns=column_name)
+
+        ZHOU CHANG
         temp_list=list(zip(range(1,self.N+1),range(1,self.N+1)))
         temp_list=[list(i) for i in temp_list]
         temp_list=list(reduce(lambda x,y:x+y,temp_list,[]))

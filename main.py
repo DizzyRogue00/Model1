@@ -14,7 +14,7 @@ if __name__=="__main__":
     zc=mh.Model1(M=8,N=20)
     zc.Analysis()    
     '''
-    zc=c.Collaborative(M=3,N=10)
+    zc=c.Collaborative(M=3,N=8)
     #a,b,c,d=zc.demand_parcels()
     #print(d)
     #zc.Optimal(1, current_data=(0,0,0))
