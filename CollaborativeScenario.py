@@ -767,14 +767,12 @@ class Collaborative(object):
         data_trajectory=np.array(data_trajectory).transpose()
         column_name=list(map(str,range(1,self.M+1)))
         data_trajectory=pd.DataFrame(data_trajectory,columns=column_name)
-
-        ZHOU CHANG
         temp_list=list(zip(range(1,self.N+1),range(1,self.N+1)))
         temp_list=[list(i) for i in temp_list]
-        temp_list=list(reduce(lambda x,y:x+y,temp_list,[]))
+        temp_list=reduce(operator.add,temp_list)
         temp_list.pop(0)
         temp_list.append(self.N+1)
-        #print(temp_list)
+       #print(temp_list)
         data_trajectory['Stop']=temp_list
         print(data_trajectory)
         #print(type(data_trajectory))
@@ -810,9 +808,10 @@ class Collaborative(object):
         #lg=ax.legend(legend_label,loc='lower right')
         plt.tight_layout()
         #plt.show()
-        filename_svg = self.combine_path(folder, "Bus Trajectory", "svg")
+        filename="Bus Trajectory under Freight Transport when demand is "+str(self.demand)
+        filename_svg = self.combine_path(folder, filename, "svg")
         plt.savefig(filename_svg,bbox_extra_artists=(lg,),bbox_inches='tight')
-        filename_pdf = self.combine_path(folder, "Bus Trajectory", "pdf")
+        filename_pdf = self.combine_path(folder, filename, "pdf")
         plt.savefig(filename_pdf, dpi=1000,bbox_extra_artists=(lg,),bbox_inches='tight')
 
 
