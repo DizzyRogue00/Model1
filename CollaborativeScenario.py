@@ -859,16 +859,22 @@ class Collaborative(object):
         else:
             with pd.ExcelWriter(filedata_result_excel,engine='openpyxl') as writer:
                 data_result.to_excel(writer,sheet_name=sheet_name)
-        ZHOU CHANG
-        def generate_in_vehicle(item:list):
-            temp=[0]
-            a=copy.deepcopy(item)
-            temp.extend(a)
-            return temp
-        data_in_vehicle={str(i):
-                             generate_in_vehicle(self.database[process_result[0][i-1]]['current_result'].getAttr('x',self.database[process_result[0][i-1]]['current_result'].getVarByName('in_vehicle'))) for i in range(1,self.M+1)}
-        data_in_vehicle=pd.DataFrame(data_in_vehicle,index=range(1,self.N+2))
-        #plt.figure(num=2, facecolor='white', edgecolor='black')
+
+        def extract_in_vehicle_data(item):
+            database=item[0]
+            data_result=item[2]
+            result_list=[
+                database[i]['current_result'].getAttr('x',database[i]['current_result'].getVarByName('in_vehicle'))
+                for i in data_result[0]
+            ]
+            return result_list
+        data_temp_in_vehicle_result = [extract_in_vehicle_data(i) for i in final_data_result]
+        data_temp_in_vehicle=np.array(data_temp_in_vehicle_result)
+        data_temp_in_vehicle_result=np.sum(data_temp_in_vehicle,0)
+        data_temp_in_vehicle_df=pd.DataFrame(columns=range(2,self.N+2),index=range(1,self.M+1))
+        data_temp_in_vehicle_df.loc[:]=data_temp_in_vehicle_result/repeat_time
+        data_temp_in_vehicle_df.insert(0,1,0)
+        data_in_vehicle=data_temp_in_vehicle_df.transpose()
         markers_ZC=[".","^","1","s","*","+","x","D"]
         linestyle=['-','--','-.',':']*2
         color = ['#7B113A', "#150E56", "#1597BB", "#8FD6E1", "#E02401", "#F78812", "#Ab6D23", "#51050F"]
@@ -895,7 +901,7 @@ class Collaborative(object):
         plt.grid(False)
         plt.tight_layout()
         #plt.show()
-        filename="Passengers Loads under Freight Transport when demand is "+str(self.demand)
+        filename="Passengers Average Loads under Freight Transport when demand is "+str(self.demand)
         filename_svg=self.combine_path(folder,filename,"svg")
         #plt.savefig('Results/Average passenger arrival rates at each bus stations.svg')
         plt.savefig(filename_svg,bbox_extra_artists=(lg,),bbox_inches='tight')
@@ -903,7 +909,53 @@ class Collaborative(object):
         #plt.savefig('Results/Average passenger arrival rates at each bus stations.pdf',dpi=1000)
         plt.savefig(filename_pdf, dpi=1000,bbox_extra_artists=(lg,),bbox_inches='tight')
 
+        def extract_load_rate(item):
+            data=item[2]
+            return data
+
+        data_parcel_load=[extract_load_rate(i) for i in final_data_result]/self._parcel_capacity/repeat_time
+        data_parcel_load_rate=pd.DataFrame(data=data_parcel_load,index=range(1,self.M+1))
+        colors = [plt.cm.Spectral(i / float(2 - 1)) for i in range(2)]
+        plt.figure(num=3,facecolor='white',edgecolor='black')
+        plt.rcParams['font.family'] = 'serif'
+        plt.rcParams['font.serif'] = 'Times New Roman'
+        plt.bar(data_parcel_load_rate.index,data_parcel_load_rate[0],width=0.6,color=colors[1],align='center')
+        ax = plt.gca()
+        ax.set_facecolor("w")
+        ax.spines['bottom'].set(visible=True, color='k', linewidth=0.5)
+        ax.spines['left'].set(visible=True, color='k', linewidth=0.5)
+        ax.spines['top'].set(visible=True, color='k', linewidth=0.5)
+        ax.spines['right'].set(visible=True, color='k', linewidth=0.5)
+        plt.xticks(np.arange(1, self.M + 1),fontweight='bold')
+        plt.yticks(None, None, fontweight='bold')
+        plt.xlabel("Bus", fontdict=dict(fontweight='bold'))
+        plt.ylabel('Goods Load Rate', fontweight='bold')
+        plt.grid(False)
+        filename = "Average Goods Load Rate under freight transport when demand is " + str(self.demand)
+        filename_svg = self.combine_path(folder, filename, "svg")
+        plt.savefig(filename_svg)
+        filename_pdf = self.combine_path(folder, filename, "pdf")
+        plt.savefig(filename_pdf,dpi=1000)
+
         #prepare data
+        def extract_passengers_number(item):
+            database=item[0]
+            data=item[2]
+            result_list1 = [database[i]['current_result'].getAttr('x',database[i]['current_result'].getVarByName('board')) for i in data[0]]
+            result_list2 = [database[i]['current_result'].getAttr('x', database[i]['current_result'].getVarByName('w')) for i in data[0]]
+            result_list3 = [database[i]['current_result'].getAttr('x', database[i]['current_result'].getVarByName('phi')) for i in data[0]]
+            return result_list1,result_list2,result_list3
+
+        data_board=[extract_passengers_number(i)[0] for i in final_data_result]
+        data_w = [extract_passengers_number(i)[1] for i in final_data_result]
+        data_phi = [extract_passengers_number(i)[2] for i in final_data_result]
+        data_board=np.array(data_board)
+        data_w=np.array(data_w)
+        data_phi=np.array(data_phi)
+        data_board_temp=np.sum(data_board,0)/repeat_time
+        data_w_temp=np.sum(data_w,0)/repeat_time
+        data_phi_temp=np.sum(data_phi,0)/repeat_time
+
         data_passenger=[
             [i,j,self.database[process_result[0][i-1]]['current_result'].getAttr('x',self.database[process_result[0][i-1]]['current_result'].getVarByName('board'))[j-1],
              self.database[process_result[0][i-1]]['current_result'].getAttr('x',self.database[process_result[0][i-1]]['current_result'].getVarByName('w'))[j-1],
@@ -982,82 +1034,6 @@ class Collaborative(object):
         plt.savefig(filename_svg)
         filename_pdf = self.combine_path(folder, filename,"pdf")
         plt.savefig(filename_pdf, dpi=1000)
-
-        #route trajectory
-        data_trajectory=[[self.database[process_result[0][i-1]]['current_result'].getAttr('x',self.database[process_result[0][i-1]]['current_result'].getVarByName('departure'))[0]] for i in range(1,self.M+1)]
-        [
-            data_trajectory[i-1].extend(
-                [
-                    self.database[process_result[0][i - 1]]['current_result'].getAttr('x', self.database[
-                        process_result[0][i - 1]]['current_result'].getVarByName('arrival'))[j-1],
-                    self.database[process_result[0][i - 1]]['current_result'].getAttr('x', self.database[
-                        process_result[0][i - 1]]['current_result'].getVarByName('departure'))[j-1]
-                ]
-            )
-            for i in range(1,self.M+1) for j in range(2,self.N+1)
-        ]
-        [
-            data_trajectory[i-1].extend(
-                [
-                    self.database[process_result[0][i - 1]]['current_result'].getAttr('x', self.database[
-                        process_result[0][i - 1]]['current_result'].getVarByName('departure'))[self.N-1]+self.ll[self.N-1]/self.v[self.N-1]
-                ]
-            )
-            for i in range(1,self.M+1)
-        ]
-        data_trajectory=np.array(data_trajectory).transpose()
-        column_name=list(map(str,range(1,self.M+1)))
-        data_trajectory=pd.DataFrame(data_trajectory,columns=column_name)
-        temp_list=list(zip(range(1,self.N+1),range(1,self.N+1)))
-        temp_list=[list(i) for i in temp_list]
-        temp_list=reduce(operator.add,temp_list)
-        temp_list.pop(0)
-        temp_list.append(self.N+1)
-       #print(temp_list)
-        data_trajectory['Stop']=temp_list
-        print(data_trajectory)
-        #print(type(data_trajectory))
-        plt.figure(num=5, facecolor='white', edgecolor='black')
-        plt.rcParams['font.family']='serif'
-        plt.rcParams['font.serif']='Times New Roman'
-        colors=[plt.cm.get_cmap('tab20b')(i/float(self.M-1)) for i in range(self.M)]
-        color_count=0
-        for col in data_trajectory.columns:
-            if col !='Stop':
-                plt.plot(data_trajectory[col],data_trajectory['Stop'],'.--',color=colors[color_count])
-                color_count+=1
-
-        ax=plt.gca()
-        ax.set_facecolor('w')
-        ax.spines['bottom'].set(visible=True, color='k', linewidth=0.5)
-        ax.spines['left'].set(visible=True, color='k', linewidth=0.5)
-        ax.spines['top'].set(visible=True, color='k', linewidth=0.5)
-        ax.spines['right'].set(visible=True, color='k', linewidth=0.5)
-        y_tick_label=list(map(str,range(1,self.N+1)))
-        y_tick_label.append('1')
-        plt.yticks(range(1,self.N+2),y_tick_label,fontweight='bold')
-        plt.ylim(bottom=1)
-        plt.xticks(None,None,fontweight='bold')
-        plt.xlim(left=self.headway)
-        ax.tick_params(top=False,bottom=True,left=True,right=False)
-        ax.tick_params('y',which='major',direction='inout')
-        ax.tick_params('x',which='both',direction='out')
-        plt.xlabel('Time',fontdict=dict(fontweight='bold'))
-        plt.ylabel('Bus Stations',fontweight='bold')
-        legend_label=list(map(lambda x,y:x+y,['Bus ']*len(list(data_trajectory.columns[:-1])),list(data_trajectory.columns[:-1])))
-        lg=ax.legend(legend_label,loc='upper left',bbox_to_anchor=(1,1),markerscale=1.5,framealpha=0.8,facecolor='w',borderaxespad=0)
-        #lg=ax.legend(legend_label,loc='lower right')
-        plt.tight_layout()
-        #plt.show()
-        filename="Bus Trajectory under Freight Transport when demand is "+str(self.demand)
-        filename_svg = self.combine_path(folder, filename, "svg")
-        plt.savefig(filename_svg,bbox_extra_artists=(lg,),bbox_inches='tight')
-        filename_pdf = self.combine_path(folder, filename, "pdf")
-        plt.savefig(filename_pdf, dpi=1000,bbox_extra_artists=(lg,),bbox_inches='tight')
-
-
-
-
 
 
 
