@@ -547,13 +547,13 @@ class Collaborative(object):
     def process(self):
         column_index=self.df.columns
         for i in range(len(column_index)-1,-1,-1):
-            if self.df.loc[self.M][i] is not inf:
-                data=i
+            if self.df.loc[self.M][column_index[i]] is not inf:
+                data=column_index[i]
                 break
         final_data=tuple(list(data)+[self.M])
 
         def traverse(data,l=[]):
-            if self.database[data]['previous'] is 0:
+            if self.database[data]['previous'] == 0:
                 l.insert(0,data)
                 return l
             else:
@@ -605,7 +605,8 @@ class Collaborative(object):
             self.database[i]['current_result'].getVarByName('total_2')]) for i in process_result[0]]
         result_temp=reduce(result_add,result_list)
         result=result_temp[:4]+[result_temp[-1]]
-        data_result = pd.DataFrame(result, columns=["In-vehicle", "At-stop", "Extra", "Tardiness","Total"], index=["FTNC"])
+        data_result = pd.DataFrame(columns=["In-vehicle", "At-stop", "Extra", "Tardiness","Total"], index=["FTNC"])
+        data_result.loc['FTNC']=result
         filename='results_'+'Demand_'+str(self.demand)
         filedata_result_csv = self.combine_path(folder, filename, 'csv')
         data_result.to_csv(filedata_result_csv,mode='a+')
@@ -955,13 +956,15 @@ class Collaborative(object):
         data_board_temp=np.sum(data_board,0)/repeat_time
         data_w_temp=np.sum(data_w,0)/repeat_time
         data_phi_temp=np.sum(data_phi,0)/repeat_time
-
+        data_board_temp=data_board_temp.flatten()
+        data_w_temp=data_w_temp.flatten()
+        data_phi_temp=data_phi_temp.flatten()
         data_passenger=[
-            [i,j,self.database[process_result[0][i-1]]['current_result'].getAttr('x',self.database[process_result[0][i-1]]['current_result'].getVarByName('board'))[j-1],
-             self.database[process_result[0][i-1]]['current_result'].getAttr('x',self.database[process_result[0][i-1]]['current_result'].getVarByName('w'))[j-1],
-             self.database[process_result[0][i-1]]['current_result'].getAttr('x',self.database[process_result[0][i-1]]['current_result'].getVarByName('phi'))[j - 1]
+            [i,j,data_board_temp[(i-1)*self.N+j-1],data_w_temp[(i-1)*self.N+j-1],data_phi_temp[(i-1)*self.N+j-1]
+
             ] for i in range(1,self.M+1) for j in range(1,self.N+1)
         ]
+
         data_passenger=pd.DataFrame(data_passenger,colimns=['Bus','Stop','Boarding','Still need to wait','Total wait'])
         x_var='Stop'
         groupby_var='Bus'
@@ -971,7 +974,7 @@ class Collaborative(object):
         bar_tick_label=list(map(lambda x:str(x),bar_x))
         colors = [plt.cm.Spectral(i / float(2 - 1)) for i in range(2)]
         #colors=['#8E354A','#261E47']
-        plt.figure(num=3, facecolor='white', edgecolor='black')
+        plt.figure(num=4, facecolor='white', edgecolor='black')
         plt.rcParams['font.family']='serif'
         plt.rcParams['font.serif']='Times New Roman'
         for i,df in data_b:
@@ -994,7 +997,7 @@ class Collaborative(object):
         lg = ax.legend(legend_label,loc='upper right',framealpha=0.5,
                        facecolor='white', edgecolor='black')
         plt.grid(False)
-        filename="About to board and stranded passengers because of capacity limit under freight transport when demand is "+str(self.demand)
+        filename="About to board and stranded passengers because of capacity limit for several times under freight transport when demand is "+str(self.demand)
         filename_svg = self.combine_path(folder, filename, "svg")
         plt.savefig(filename_svg)
         filename_pdf = self.combine_path(folder, filename, "pdf")
@@ -1029,7 +1032,7 @@ class Collaborative(object):
         ax.legend(legend_label, loc='upper right', framealpha=0.5,
                        facecolor='white')
         plt.grid(False)
-        filename="Average number of about to board and stranded passengers because of capacity limit under freight transport when demand is "+str(self.demand)
+        filename="Average number of about to board and stranded passengers because of capacity limit for several times under freight transport when demand is "+str(self.demand)
         filename_svg = self.combine_path(folder, filename, "svg")
         plt.savefig(filename_svg)
         filename_pdf = self.combine_path(folder, filename,"pdf")
