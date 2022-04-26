@@ -590,12 +590,16 @@ class Collaborative(object):
 
     def Analysis(self):
         self.dynamic_programming()
+        print(self.database)
+        print(self.df)
+        self.df.to_csv('test_DP.csv')
         process_result=self.process()
         folder=self.directory('Results_ZC')
 
         def result_add(a,b):
             return [a[i]+b[i] for i in range(len(a))]
 
+        print(process_result)
         result_list=[self.database[i]['current_result'].getAttr('x', [
             self.database[i]['current_result'].getVarByName('in_vehicle_waiting'),
             self.database[i]['current_result'].getVarByName('at_stop_waiting'),
@@ -625,8 +629,10 @@ class Collaborative(object):
             a=copy.deepcopy(item)
             temp.extend(a)
             return temp
+        print(len(self.database[process_result[0][0]]['current_result'].getAttr('x',self.database[process_result[0][0]]['current_result'].getVarByName('in_vehicle'))))
         data_in_vehicle={str(i):
                              generate_in_vehicle(self.database[process_result[0][i-1]]['current_result'].getAttr('x',self.database[process_result[0][i-1]]['current_result'].getVarByName('in_vehicle'))) for i in range(1,self.M+1)}
+        print(data_in_vehicle)
         data_in_vehicle=pd.DataFrame(data_in_vehicle,index=range(1,self.N+2))
         #plt.figure(num=2, facecolor='white', edgecolor='black')
         markers_ZC=[".","^","1","s","*","+","x","D"]
