@@ -484,6 +484,10 @@ class Collaborative(object):
                 if reduce(operator.add,map(operator.mul,item,self.size))<=self._parcel_capacity:
                     if compare(item,cal_max(n)):
                         self.__Optimal(n,current_data=key)
+                        print(self._m)
+                        print(self._in_vehicle)
+                        print(self._m.getAttr('x', self._m.getVarByName('departure')))
+                        print(len(self._m.getAttr('x', self._m.getVarByName('departure'))))
                         value={'previous':0,'current_result':self._m}
                         result_item={key:value}
                         df.loc[n][item]=self._result[4]
@@ -496,6 +500,10 @@ class Collaborative(object):
                                 previous_key=tuple(list(i)+[n-1])
                                 if database[previous_key]['current_result'] is not inf:
                                     self.__Optimal(n,previous_key,database,key)
+                                    print(self._m)
+                                    print(self._in_vehicle)
+                                    print(self._m.getAttr('x', self._m.getVarByName('departure')))
+                                    print(len(self._m.getAttr('x', self._m.getVarByName('departure'))))
                                     if n==self.M:
                                         summation=df.loc[n-1][i]+self._objVal
                                     else:
@@ -510,7 +518,11 @@ class Collaborative(object):
             df.loc[n]=inf
             for item in column_name:
                 key = tuple(list(item) + [n])
-                value = {'previous': 0, 'current_result': inf}
+                if n==1:
+                    value = {'previous': 0, 'current_result': inf}
+                else:
+                    previous_key=tuple(list(item)+[n-1])
+                    value={'previous':previous_key,'current_result':inf}
                 result_item={key:value}
                 database.update(result_item)
                 #print(n)
@@ -618,8 +630,8 @@ class Collaborative(object):
         path=pathlib.Path(filedata_result_excel)
         sheet_name="FTNC_Demand"+str(self.demand)
         if path.exists():
-            with pd.ExcelWriter(filedata_result_excel,engine='openpyxl',mode='a') as writer:
-                data_result.to_excel(writer,sheet_name=sheet_name)
+            with pd.ExcelWriter(filedata_result_excel,engine='openpyxl',mode='a',if_sheet_exists="overlay") as writer:
+                data_result.to_excel(writer,sheet_name=sheet_name )
         else:
             with pd.ExcelWriter(filedata_result_excel,engine='openpyxl') as writer:
                 data_result.to_excel(writer,sheet_name=sheet_name)
