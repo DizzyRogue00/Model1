@@ -400,7 +400,6 @@ class Collaborative(object):
 
             if m.status==GRB.OPTIMAL:
                 print(m.status)
-                self._m=m
                 self._objVal = m.objVal
                 self._result = m.getAttr('x', [in_vehicle_waiting, at_stop_waiting, extra_waiting, tardy_time,total_1,total_2])
                 self._departure = m.getAttr('x', departure)
@@ -417,7 +416,6 @@ class Collaborative(object):
                 if m.MIPGap<=0.05:
                     print(m.status)
                     print(m.MIPGap)
-                    self._m=m
                     self._objVal = m.objVal
                     self._result = m.getAttr('x', [in_vehicle_waiting, at_stop_waiting, extra_waiting, tardy_time, total_1,total_2])
                     self._departure = m.getAttr('x', departure)
@@ -434,7 +432,6 @@ class Collaborative(object):
                     m.optimize()
                     print("OK")
                     print(m.status)
-                    self._m=m
                     self._objVal = m.objVal
                     self._result = m.getAttr('x', [in_vehicle_waiting, at_stop_waiting, extra_waiting,tardy_time,total_1,total_2])
                     self._departure = m.getAttr('x', departure)
@@ -446,7 +443,18 @@ class Collaborative(object):
                     self._phi = m.getAttr('x', phi)
                     self._tau = m.getAttr('x', tau)
                     self._alight = m.getAttr('x', alight)
-            return self._m,self._objVal,self._result,self._departure, self._arrival, self._in_vehicle_j, self._in_vehicle, self._board, self._w, self._phi, self._tau, self._alight
+            self._data_record={'Object_value':self._objVal,
+                              'Result':self._result,
+                              'Departure':self._departure,
+                              'Arrival':self._arrival,
+                              'In_vehicle_j': self._in_vehicle_j,
+                              'In_vehicle':self._in_vehicle,
+                              'Board':self._board,
+                              'W':self._w,
+                              'Phi':self._phi,
+                              'Tau':self._tau,
+                              'Alight':self._alight}
+            return self._data_record,self._objVal,self._result,self._departure, self._arrival, self._in_vehicle_j, self._in_vehicle, self._board, self._w, self._phi, self._tau, self._alight
 
         except gp.GurobiError as e:
             print('Error code'+str(e.errno)+': '+str(e))
