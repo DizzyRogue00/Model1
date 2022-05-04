@@ -336,10 +336,12 @@ class Collaborative(object):
                 index=gp.tuplelist(index)
                 inter_tardy_1=m.addVars(index,lb=-GRB.INFINITY,name='inter_tardy_1')
                 inter_tardy_2 = m.addVars(index, name='inter_tardy_2')
-                item11=gp.quicksum(pow((departure[j]-database[data]['current_result'].getAttr('x',departure)[j]),2)*self.lambda_[j-1]/2 for j in range(1,self.N+1))
+                #item11=gp.quicksum(pow((departure[j]-database[data]['current_result'].getAttr('x',departure)[j]),2)*self.lambda_[j-1]/2 for j in range(1,self.N+1))
+                item11 = gp.quicksum(pow((departure[j] - database[data]['current_result']['Departure'][j]), 2) * self.lambda_[j - 1] / 2 for j in range(1, self.N + 1))
                 item1=item11+gp.quicksum(self.lambda_[j-1]/2*pow((self.t_bar(n)[j-1]-departure[j]),2) for j in range(1,self.N+1))
                 item2=gp.quicksum((in_vehicle[j+1]-in_vehicle_j.prod(self.p,'*',j+1))*tau[j+1] for j in range(1,self.N))
-                item33=gp.quicksum(database[data]['current_result'].getAttr('x',w)[j]*(departure[j]-database[data]['current_result'].getAttr('x',departure)[j]) for j in range(1,self.N+1))
+                #item33=gp.quicksum(database[data]['current_result'].getAttr('x',w)[j]*(departure[j]-database[data]['current_result'].getAttr('x',departure)[j]) for j in range(1,self.N+1))
+                item33 = gp.quicksum(database[data]['current_result']['W'][j] * (departure[j] - database[data]['current_result']['Departure'][j]) for j in range(1, self.N + 1))
                 item3=item33+gp.quicksum(w[j]*(self.t_bar(n)[j-1]-departure[j]) for j in range(1,self.N+1))
                 item4=gp.quicksum(inter_tardy_2[j] for j in index)
 
@@ -379,9 +381,12 @@ class Collaborative(object):
                 m.addConstr(inter_tau_2==reduce(operator.add,map(lambda x,y:x*y,current_data[:-1],self.size))*self._unloading_rate/60,name='inter_tau_2_con')
                 m.addConstrs((inter_tardy_1[k,q]==arrival[math.ceil(self.N/2)+1]-self.dd[k,1,0,q] for k,q in index), name='inter_tardy_1_con')
             else:
-                m.addConstrs((phi[j]==self.lambda_[j-1]*(departure[j]-database[data]['current_result'].getAttr('x',departure)[j])+database[data]['current_result'].getAttr('x',w)[j] for j in range(1,self.N+1)),name='waiting')
-                m.addConstrs((departure[j]-database[data]['current_result'].getAttr('x',departure)[j]>=0 for j in range(1,self.N+1)),name='overtaking_n_1')
-                m.addConstrs((arrival[j]-database[data]['current_result'].getAttr('x',arrival)[j]>=0 for j in range(2,self.N+1)),name='overtaking_n_2')
+                #m.addConstrs((phi[j]==self.lambda_[j-1]*(departure[j]-database[data]['current_result'].getAttr('x',departure)[j])+database[data]['current_result'].getAttr('x',w)[j] for j in range(1,self.N+1)),name='waiting')
+                #m.addConstrs((departure[j]-database[data]['current_result'].getAttr('x',departure)[j]>=0 for j in range(1,self.N+1)),name='overtaking_n_1')
+                #m.addConstrs((arrival[j]-database[data]['current_result'].getAttr('x',arrival)[j]>=0 for j in range(2,self.N+1)),name='overtaking_n_2')
+                m.addConstrs((phi[j] == self.lambda_[j - 1] * (departure[j] - database[data]['current_result']['Departure'][j]) +database[data]['current_result']['W'][j] for j in range(1, self.N + 1)),name='waiting')
+                m.addConstrs((departure[j] - database[data]['current_result']['Departure'][j] >= 0 for j in range(1, self.N + 1)), name='overtaking_n_1')
+                m.addConstrs((arrival[j] - database[data]['current_result']['Arrival'][j] >= 0 for j in range(2, self.N + 1)), name='overtaking_n_2')
                 m.addConstr(inter_tau_2==reduce(operator.add,map(lambda x,y:x*y,map(lambda x,y:x-y,current_data[:-1],data[:-1]),self.size)) * self._unloading_rate / 60,name='inter_tau_2_con')
                 m.addConstrs((inter_tardy_1[k,q]==arrival[math.ceil(self.N/2)+1]-self.dd[k,n,data[self.size.index(k)],q] for k,q in index),name='inter_tardy_1_con')
             m.addConstrs((alight[j]==in_vehicle.prod(self.p,'*',j) for j in range(2,self.N+2)),name='a1')
@@ -492,11 +497,7 @@ class Collaborative(object):
                 if reduce(operator.add,map(operator.mul,item,self.size))<=self._parcel_capacity:
                     if compare(item,cal_max(n)):
                         self.__Optimal(n,current_data=key)
-                        print(self._m)
-                        print(self._in_vehicle)
-                        print(self._m.getAttr('x', self._m.getVarByName('departure')))
-                        print(len(self._m.getAttr('x', self._m.getVarByName('departure'))))
-                        value={'previous':0,'current_result':self._m}
+                        value={'previous':0,'current_result':self._data_record}
                         result_item={key:value}
                         df.loc[n][item]=self._result[4]
                         database.update(result_item)
@@ -508,16 +509,12 @@ class Collaborative(object):
                                 previous_key=tuple(list(i)+[n-1])
                                 if database[previous_key]['current_result'] is not inf:
                                     self.__Optimal(n,previous_key,database,key)
-                                    print(self._m)
-                                    print(self._in_vehicle)
-                                    print(self._m.getAttr('x', self._m.getVarByName('departure')))
-                                    print(len(self._m.getAttr('x', self._m.getVarByName('departure'))))
                                     if n==self.M:
                                         summation=df.loc[n-1][i]+self._objVal
                                     else:
                                         summation=df.loc[n-1][i]+self._result[4]
                                     if summation<=df.loc[n][item]:
-                                        value={'previous':previous_key,'current_result':self._m}
+                                        value={'previous':previous_key,'current_result':self._data_record}
                                         result_item={key:value}
                                         df.loc[n][item]=summation
                                         database.update(result_item)
@@ -537,6 +534,7 @@ class Collaborative(object):
                 #print(item)
                 #print(database)
                 #print(df)
+                print(n,item)
                 cal_database_item(database,df,n,item)
 
         self.database=database
@@ -567,7 +565,7 @@ class Collaborative(object):
     def process(self):
         column_index=self.df.columns
         for i in range(len(column_index)-1,-1,-1):
-            if self.df.loc[self.M][column_index[i]] is not inf:
+            if self.df.loc[self.M][column_index[i]] != inf:
                 data=column_index[i]
                 break
         final_data=tuple(list(data)+[self.M])
@@ -620,13 +618,7 @@ class Collaborative(object):
             return [a[i]+b[i] for i in range(len(a))]
 
         print(process_result)
-        result_list=[self.database[i]['current_result'].getAttr('x', [
-            self.database[i]['current_result'].getVarByName('in_vehicle_waiting'),
-            self.database[i]['current_result'].getVarByName('at_stop_waiting'),
-            self.database[i]['current_result'].getVarByName('extra_waiting'),
-            self.database[i]['current_result'].getVarByName('tardy_time'),
-            self.database[i]['current_result'].getVarByName('total_1'),
-            self.database[i]['current_result'].getVarByName('total_2')]) for i in process_result[0]]
+        result_list=[self.database[i]['current_result']['Result'] for i in process_result[0]]
         result_temp=reduce(result_add,result_list)
         result=result_temp[:4]+[result_temp[-1]]
         data_result = pd.DataFrame(columns=["In-vehicle", "At-stop", "Extra", "Tardiness","Total"], index=["FTNC"])
@@ -649,10 +641,8 @@ class Collaborative(object):
             a=copy.deepcopy(item)
             temp.extend(a)
             return temp
-        print(len(self.database[process_result[0][0]]['current_result'].getAttr('x',self.database[process_result[0][0]]['current_result'].getVarByName('in_vehicle'))))
-        data_in_vehicle={str(i):
-                             generate_in_vehicle(self.database[process_result[0][i-1]]['current_result'].getAttr('x',self.database[process_result[0][i-1]]['current_result'].getVarByName('in_vehicle'))) for i in range(1,self.M+1)}
-        print(data_in_vehicle)
+
+        data_in_vehicle={str(i): generate_in_vehicle(self.database[process_result[0][i-1]]['current_result']['In_vehicle'].values()) for i in range(1,self.M+1)}
         data_in_vehicle=pd.DataFrame(data_in_vehicle,index=range(1,self.N+2))
         #plt.figure(num=2, facecolor='white', edgecolor='black')
         markers_ZC=[".","^","1","s","*","+","x","D"]
@@ -691,12 +681,12 @@ class Collaborative(object):
 
         #prepare data
         data_passenger=[
-            [i,j,self.database[process_result[0][i-1]]['current_result'].getAttr('x',self.database[process_result[0][i-1]]['current_result'].getVarByName('board'))[j-1],
-             self.database[process_result[0][i-1]]['current_result'].getAttr('x',self.database[process_result[0][i-1]]['current_result'].getVarByName('w'))[j-1],
-             self.database[process_result[0][i-1]]['current_result'].getAttr('x',self.database[process_result[0][i-1]]['current_result'].getVarByName('phi'))[j - 1]
+            [i,j,self.database[process_result[0][i-1]]['current_result']['Board'][j],
+             self.database[process_result[0][i-1]]['current_result']['W'][j],
+             self.database[process_result[0][i-1]]['current_result']['Phi'][j]
             ] for i in range(1,self.M+1) for j in range(1,self.N+1)
         ]
-        data_passenger=pd.DataFrame(data_passenger,colimns=['Bus','Stop','Boarding','Still need to wait','Total wait'])
+        data_passenger=pd.DataFrame(data_passenger,columns=['Bus','Stop','Boarding','Still need to wait','Total wait'])
         x_var='Stop'
         groupby_var='Bus'
         data_b=data_passenger.groupby(groupby_var)
@@ -770,26 +760,23 @@ class Collaborative(object):
         plt.savefig(filename_pdf, dpi=1000)
 
         #route trajectory
-        data_trajectory=[[self.database[process_result[0][i-1]]['current_result'].getAttr('x',self.database[process_result[0][i-1]]['current_result'].getVarByName('departure'))[0]] for i in range(1,self.M+1)]
+        data_trajectory = [[self.database[process_result[0][i - 1]]['current_result']['Departure'].values()[0]] for i in range(1, self.M + 1)]
         [
-            data_trajectory[i-1].extend(
+            data_trajectory[i - 1].extend(
                 [
-                    self.database[process_result[0][i - 1]]['current_result'].getAttr('x', self.database[
-                        process_result[0][i - 1]]['current_result'].getVarByName('arrival'))[j-1],
-                    self.database[process_result[0][i - 1]]['current_result'].getAttr('x', self.database[
-                        process_result[0][i - 1]]['current_result'].getVarByName('departure'))[j-1]
+                    self.database[process_result[0][i - 1]]['current_result']['Arrival'].values()[j-2],
+                    self.database[process_result[0][i - 1]]['current_result']['Departure'].values()[j-1],
                 ]
             )
-            for i in range(1,self.M+1) for j in range(2,self.N+1)
+            for i in range(1, self.M + 1) for j in range(2, self.N + 1)
         ]
         [
-            data_trajectory[i-1].extend(
+            data_trajectory[i - 1].extend(
                 [
-                    self.database[process_result[0][i - 1]]['current_result'].getAttr('x', self.database[
-                        process_result[0][i - 1]]['current_result'].getVarByName('departure'))[self.N-1]+self.ll[self.N-1]/self.v[self.N-1]
+                    self.database[process_result[0][i - 1]]['current_result']['Departure'].values()[self.N-1]+self.ll[self.N-1]/self.v[self.N-1]
                 ]
             )
-            for i in range(1,self.M+1)
+            for i in range(1, self.M + 1)
         ]
         data_trajectory=np.array(data_trajectory).transpose()
         column_name=list(map(str,range(1,self.M+1)))
@@ -859,13 +846,7 @@ class Collaborative(object):
         def extract_data(item):
             database=item[0]
             data_result=item[2]
-            result_list = [database[i]['current_result'].getAttr('x', [
-                database[i]['current_result'].getVarByName('in_vehicle_waiting'),
-                database[i]['current_result'].getVarByName('at_stop_waiting'),
-                database[i]['current_result'].getVarByName('extra_waiting'),
-                database[i]['current_result'].getVarByName('tardy_time'),
-                database[i]['current_result'].getVarByName('total_1'),
-                database[i]['current_result'].getVarByName('total_2')]) for i in data_result[0]]
+            result_list = [database[i]['current_result']['Results'] for i in data_result[0]]
             result_temp=reduce(result_add,result_list)
             result = result_temp[:4] + [result_temp[-1]]
             return result
@@ -891,7 +872,7 @@ class Collaborative(object):
             database=item[0]
             data_result=item[2]
             result_list=[
-                database[i]['current_result'].getAttr('x',database[i]['current_result'].getVarByName('in_vehicle'))
+                database[i]['current_result']['In_vehicle'].values()
                 for i in data_result[0]
             ]
             return result_list
@@ -937,10 +918,10 @@ class Collaborative(object):
         plt.savefig(filename_pdf, dpi=1000,bbox_extra_artists=(lg,),bbox_inches='tight')
 
         def extract_load_rate(item):
-            data=item[2]
+            data=item[2][3]
             return data
 
-        data_parcel_load=[extract_load_rate(i) for i in final_data_result]/self._parcel_capacity/repeat_time
+        data_parcel_load=np.sum(np.array([extract_load_rate(i) for i in final_data_result]),0)/self._parcel_capacity/repeat_time
         data_parcel_load_rate=pd.DataFrame(data=data_parcel_load,index=range(1,self.M+1))
         colors = [plt.cm.Spectral(i / float(2 - 1)) for i in range(2)]
         plt.figure(num=3,facecolor='white',edgecolor='black')
@@ -968,8 +949,8 @@ class Collaborative(object):
         def extract_passengers_number(item):
             database=item[0]
             data=item[2]
-            result_list1 = [database[i]['current_result'].getAttr('x',database[i]['current_result'].getVarByName('board')) for i in data[0]]
-            result_list2 = [database[i]['current_result'].getAttr('x', database[i]['current_result'].getVarByName('w')) for i in data[0]]
+            result_list1 = [database[i]['current_result']['Board'].values() for i in data[0]]
+            result_list2 = [database[i]['current_result']['W'].values() for i in data[0]]
             result_list3 = [database[i]['current_result'].getAttr('x', database[i]['current_result'].getVarByName('phi')) for i in data[0]]
             return result_list1,result_list2,result_list3
 
