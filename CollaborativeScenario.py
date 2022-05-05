@@ -846,11 +846,10 @@ class Collaborative(object):
         def extract_data(item):
             database=item[0]
             data_result=item[2]
-            result_list = [database[i]['current_result']['Results'] for i in data_result[0]]
+            result_list = [database[i]['current_result']['Result'] for i in data_result[0]]
             result_temp=reduce(result_add,result_list)
             result = result_temp[:4] + [result_temp[-1]]
             return result
-
         data_temp_result.loc[:]=[extract_data(i) for i in final_data_result]
         index_name="FTNC_Average_Demand_"+str(self.demand)
         data_result = pd.DataFrame(columns=["In-vehicle", "At-stop", "Extra", "Tardiness","Total"], index=[index_name])
@@ -903,7 +902,8 @@ class Collaborative(object):
         plt.yticks(None, None, fontweight='bold')
         plt.xlabel("Bus Stations", fontdict=dict(fontweight='bold'))
         plt.ylabel('Load', fontweight='bold')
-        legend_label=list(map(lambda x,y:x+y,['Bus ']*len(list(data_in_vehicle.columns)),list(data_in_vehicle.columns)))
+        data_in_vehicle_str=[str(i) for i in data_in_vehicle.columns]
+        legend_label=list(map(lambda x,y:x+y,['Bus ']*len(list(data_in_vehicle.columns)),data_in_vehicle_str))
         #ax.legend(loc='upper right')
         lg=ax.legend(legend_label,loc='upper left',bbox_to_anchor=(1.05,0.95),markerscale=1.5,framealpha=0.5,facecolor='white',edgecolor='black',borderaxespad=0)
         plt.grid(False)
@@ -951,7 +951,7 @@ class Collaborative(object):
             data=item[2]
             result_list1 = [database[i]['current_result']['Board'].values() for i in data[0]]
             result_list2 = [database[i]['current_result']['W'].values() for i in data[0]]
-            result_list3 = [database[i]['current_result'].getAttr('x', database[i]['current_result'].getVarByName('phi')) for i in data[0]]
+            result_list3 = [database[i]['current_result']['Phi'].values() for i in data[0]]
             return result_list1,result_list2,result_list3
 
         data_board=[extract_passengers_number(i)[0] for i in final_data_result]
@@ -972,7 +972,7 @@ class Collaborative(object):
             ] for i in range(1,self.M+1) for j in range(1,self.N+1)
         ]
 
-        data_passenger=pd.DataFrame(data_passenger,colimns=['Bus','Stop','Boarding','Still need to wait','Total wait'])
+        data_passenger=pd.DataFrame(data_passenger,columns=['Bus','Stop','Boarding','Still need to wait','Total wait'])
         x_var='Stop'
         groupby_var='Bus'
         data_b=data_passenger.groupby(groupby_var)
@@ -1020,7 +1020,7 @@ class Collaborative(object):
         #colors = [plt.cm.Spectral(i / float(2 - 1)) for i in range(2)]
         colors=['#9F353A','#66327C']
         #print(data_b_average)
-        plt.figure(num=4, facecolor='white', edgecolor='black')
+        plt.figure(num=5, facecolor='white', edgecolor='black')
         plt.rcParams['font.family']='serif'
         plt.rcParams['font.serif']='Times New Roman'
         plt.bar(data_b_average.index,data_b_average['Boarding'],width=bar_width,align='center',color=colors[0])
