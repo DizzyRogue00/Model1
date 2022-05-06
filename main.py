@@ -2,9 +2,10 @@
 import Model1 as mb
 import Model1_holding as mh
 import CollaborativeScenario as c
-#import CollaborativeScenario_holding as ch
+import CollaborativeScenario_holding as ch
 import logging
 if __name__=="__main__":
+    #benchmark
     '''
     zc=mb.Model1(M=8,N=20)
     #a=zc.Optimal()
@@ -12,9 +13,12 @@ if __name__=="__main__":
     #print(a)
     zc.Analysis()
     '''
+    #holding control
     '''
     zc=mh.Model1(M=8,N=20)
     zc.Analysis()    
+    '''
+    #freight transport
     '''
     zc=c.Collaborative(M=3,N=3)
     #a,b,c,d=zc.demand_parcels()
@@ -24,8 +28,15 @@ if __name__=="__main__":
     #print(zc_database)
     #print(zc_df)
     #zc_df.to_csv('test_DP.csv')
+    zc.Analysis()
+    #zc.Average_Analysis()
+    '''
+    #freight transport under holding control
+    '''
+    zc=ch.Collaborative(M=3,N=3)
     #zc.Analysis()
     zc.Average_Analysis()
+    '''
 '''
     no_control = mb.Model1(M=8, N=20)
     no_control.Analysis()

@@ -1,0 +1,15 @@
+try...
+except: division by zeroTraceback (most recent call last):
+  File "<ipython-input-237-04cbf076c8bf>", line 4, in <module>
+    r = 10 / 0
+ZeroDivisionError: division by zero
+finally...
+END
+try...
+except: division by zero
+Traceback (most recent call last):
+  File "<ipython-input-238-bedddf1adb3f>", line 4, in <module>
+    r = 10 / 0
+ZeroDivisionError: division by zero
+finally...
+END

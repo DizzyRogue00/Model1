@@ -672,7 +672,7 @@ class Model1(object):
         filename_svg = self.combine_path(folder, "Average number of about to board and stranded passengers because of capacity limit under holding control",
                                          "svg")
         plt.savefig(filename_svg)
-        filename_pdf = self.combine_path(folder, "Average about to board and stranded passengers because of capacity limit under holding control",
+        filename_pdf = self.combine_path(folder, "Average number of about to board and stranded passengers because of capacity limit under holding control",
                                          "pdf")
         plt.savefig(filename_pdf, dpi=1000)
 
