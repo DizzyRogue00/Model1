@@ -164,7 +164,7 @@ class Collaborative(object):
     @demand.setter
     def demand(self,value):
         self._demand=value
-        return self._demand
+        #return self._demand
 
     @property
     def size(self):
@@ -177,7 +177,7 @@ class Collaborative(object):
             raise ValueError('size should be a list')
         else:
             self._size=value
-        return self._size
+        #return self._size
 
     def release_interval(self):
         return [0,self.headway*self.M]

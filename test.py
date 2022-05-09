@@ -90,10 +90,45 @@ with open('log.txt',"a") as file:
         file.write('result:{}'.format(r))
     except ZeroDivisionError as e:
         file.write('except: {}\n'.format(e))
-        file.write(traceback.format_exc())
+        #file.write(traceback.format_exc())
+        logging.debug(traceback.format_exc())
     finally:
         file.write('finally...\n')
-        file.write('END\n')    
+        file.write('END\n')  
+
+try:
+    logging.info('try...')
+    r = 10 / 0
+    logging.info('result:{}'.format(r))
+except ZeroDivisionError as e:
+    logging.info('except: {}'.format(e))
+        #file.write(traceback.format_exc())
+    logging.debug(traceback.format_exc())
+finally:
+    logging.info('finally...')
+    logging.info('END')   
+    
+try:
+    logging.info('try...')
+    r = 10 / 0
+    logging.info('result:{}'.format(r))
+except ZeroDivisionError as e:
+    logging.info('except: {}'.format(e))
+        #file.write(traceback.format_exc())
+    logging.debug(traceback.format_exc())
+finally:
+    try:
+        logging.info('try...')
+        r = 10 / 0
+        logging.info('result:{}'.format(r))
+    except ZeroDivisionError as e:
+        logging.info('except: {}'.format(e))
+        #file.write(traceback.format_exc())
+        logging.debug(traceback.format_exc())
+    finally:
+        logging.info('END')  
+    logging.info('finally...')
+    logging.info('END')   
 '''
 
 import time
