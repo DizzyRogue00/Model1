@@ -239,8 +239,8 @@ class Model1(object):
                 i+=1
         temp_=tupledict(temp_)
         self._p=temp_
-        '''
         return self._p
+        '''
 
     @p.setter
     def p(self, value):

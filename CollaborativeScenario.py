@@ -26,13 +26,73 @@ class Collaborative(object):
         self._parcel_capacity=30
         self._holding=3#mins
         self._unloading_rate=6# 6 sec per parcel
+        self._lambda_ = [0.7, 0.75, 1, 0.8, 0.5, 1.2, 1.5, 1.3, 1.6, 2, 2, 3, 1.2, 2.2, 2, 1.2, 0.8, 1, 0.8,
+                         0.7, 0.6, 0.5]
+        self._ll = [800] * self.N
+        self._v = [500] * self.N
+
+        def p_cal():
+            def myiter(iterable, *, initial=None):
+                it = iter(iterable)
+                total = initial
+                if initial == None:
+                    try:
+                        total = next(it)
+                    except StopIteration:
+                        return
+                yield total
+                alpha = 1
+                for element in it:
+                    if element != 0:
+                        element = element * alpha
+                        total = element / (1 - total)
+                        alpha *= total / element
+                    else:
+                        total = 1
+                    yield total
+
+            temp = [(y, z) for y in range(1, self.N + 1) for z in range(y + 1, self.N + 2)]
+            temp = tuplelist(temp)
+            if self.N % 2 == 0:
+                stop_step = self.N // 2
+            else:
+                stop_step = (self.N + 1) // 2
+            terminal_stop = math.ceil(self.N / 2) + 1
+            temp_ = {}
+            for y in range(1, self.N + 1):
+                # m = np.array(list(np.arange(y + 1, self.N + 2)))
+                m = np.array([0.5] * (self.N - y + 1))
+                if y >= terminal_stop:
+                    if len(m) == 1:
+                        m[-1] = 1
+                    else:
+                        m[-1] = 0.5
+                        m[:-1] = 0.5 / (self.N - y)
+                else:
+                    m[:] = 0.5 / (stop_step - 1)
+                    m[stop_step:] = 0
+                    m[stop_step - y - 1] = 0.5
+                m = list(myiter(m))
+                i = 0
+                for z in range(y + 1, self.N + 2):
+                    temp_dict = {ii: m[i] for ii in temp.select(y, z)}
+                    temp_.update(temp_dict)
+                    i += 1
+            temp_ = tupledict(temp_)
+            return temp_
+        self._p = p_cal()
+        self._headway = 5
+        self._boarding_rate = 4
+        self._capacity = 70
+        self._demand = 5
+        self._size = [1, 2, 5]
 
     @property
     def lambda_(self):
         #self._lambda_ = [0.6, 0.7, 0.75, 1, 0.8, 0.5, 1.2, 1.5, 1.3, 1.6, 2, 2, 3, 1.2, 2.2, 2, 1.2, 0.8, 1, 0.8,
          #                0.7, 0.6, 0.5, 0.5]
-        self._lambda_ = [0.7, 0.75, 1, 0.8, 0.5, 1.2, 1.5, 1.3, 1.6, 2, 2, 3, 1.2, 2.2, 2, 1.2, 0.8, 1, 0.8,
-                         0.7, 0.6, 0.5]
+        #self._lambda_ = [0.7, 0.75, 1, 0.8, 0.5, 1.2, 1.5, 1.3, 1.6, 2, 2, 3, 1.2, 2.2, 2, 1.2, 0.8, 1, 0.8,
+        #                 0.7, 0.6, 0.5]
         return self._lambda_
 
     @lambda_.setter
@@ -45,7 +105,7 @@ class Collaborative(object):
 
     @property
     def ll(self):
-        self._ll = [800] * self.N
+        #self._ll = [800] * self.N
         return self._ll
 
     @ll.setter
@@ -58,7 +118,7 @@ class Collaborative(object):
 
     @property
     def v(self):
-        self._v = [500] * self.N
+        #self._v = [500] * self.N
         return self._v
 
     @v.setter
@@ -71,6 +131,7 @@ class Collaborative(object):
 
     @property
     def p(self):
+        '''
         def myiter(iterable, *, initial=None):
             it = iter(iterable)
             total = initial
@@ -118,6 +179,7 @@ class Collaborative(object):
                 i+=1
         temp_=tupledict(temp_)
         self._p=temp_
+        '''
         return self._p
 
     @p.setter
@@ -130,7 +192,7 @@ class Collaborative(object):
 
     @property
     def headway(self):
-        self._headway = 5
+        #self._headway = 5
         return self._headway
 
     @headway.setter
@@ -139,7 +201,7 @@ class Collaborative(object):
 
     @property
     def boarding_rate(self):  # s/pax
-        self._boarding_rate = 4
+        #self._boarding_rate = 4
         return self._boarding_rate
 
     @boarding_rate.setter
@@ -148,7 +210,7 @@ class Collaborative(object):
 
     @property
     def capacity(self):
-        self._capacity = 70
+        #self._capacity = 70
         return self._capacity
 
     @capacity.setter
@@ -158,7 +220,7 @@ class Collaborative(object):
     #demand will range from 5 to 20: [5,10,15,20]
     @property
     def demand(self):
-        self._demand=5
+        #self._demand=5
         return self._demand
 
     @demand.setter
@@ -168,7 +230,7 @@ class Collaborative(object):
 
     @property
     def size(self):
-        self._size=[1,2,5]
+        #self._size=[1,2,5]
         return self._size
 
     @size.setter

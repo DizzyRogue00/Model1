@@ -130,7 +130,7 @@ finally:
     logging.info('finally...')
     logging.info('END')   
 '''
-
+'''
 import time
 import datetime
 t1=time.perf_counter()
@@ -159,3 +159,41 @@ print('程序运行时间:%s' % (t44 - t4))#s cpu time
 print('程序运行时间:%s' % (t55 - t5))#s cpu time
 print('程序运行时间:%s' % (end_time-start_time).microseconds)#micro seconds
 print('程序运行时间:%s' % ((end-start)*1000))#ms
+'''
+
+class Student():
+    def __init__(self,grade=2):
+
+        #OK
+        self._grade=grade
+        self._score=self.grade*35
+
+        '''
+        #OK
+        self._grade=grade
+        self._score=self._grade*35
+        '''
+
+        '''
+        #Error
+        self._score=self._grade*35
+        self._grade=grade       
+        '''
+        '''
+        self._score=self.grade*35
+        self._grade=grade
+        '''
+
+    @property
+    def score(self):
+        return self._score
+    @score.setter
+    def score(self,value):
+        self._score=value
+
+    @property
+    def grade(self):
+        return self._grade
+    @grade.setter
+    def grade(self,value):
+        self._grade=value
