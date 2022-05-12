@@ -474,7 +474,7 @@ class Model1(object):
                 ## return self.objVal,self.result,self.departure,self.arrival,self.in_vehicle_j,self.in_vehicle,self.board,self.w,self.phi,self.tau,self.alight
             elif m.status == GRB.TIME_LIMIT:
                 # m.Params.timeLimit=float("inf")
-                m.Params.timeLimit = 200
+                m.Params.timeLimit = 3500
                 if m.MIPGap <= 0.05:
                     print(m.status)
                     print(m.MIPGap)

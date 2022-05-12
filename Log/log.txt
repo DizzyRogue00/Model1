@@ -1,57 +1,12 @@
-
-2022-05-10 17:37:50,992 - INFO - Try no control scenario...
-2022-05-10 17:37:52,895 - INFO - No control scenario complete!
-2022-05-10 17:37:52,895 - INFO - Finally...
-2022-05-10 17:37:52,895 - INFO - Execution time of no control: 1903.194
-2022-05-10 17:37:52,895 - INFO - End
-2022-05-10 17:37:52,895 - INFO - Try holding control scenario...
-2022-05-10 17:42:54,992 - INFO - Holding control scenario complete!
-2022-05-10 17:42:54,992 - INFO - Finally...
-2022-05-10 17:42:54,992 - INFO - Execution time of holding control: 302096.885
-2022-05-10 17:42:54,992 - INFO - End
-2022-05-10 17:42:54,993 - INFO - Try FTNC scenario...
-2022-05-10 18:05:40,487 - INFO - FTNC scenario complete!
-2022-05-10 18:05:40,487 - INFO - Finally...
-2022-05-10 18:05:40,487 - INFO - Execution time of FTNC: 1365494.1635
-2022-05-10 18:05:40,488 - INFO - End
-2022-05-10 18:05:40,488 - INFO - Try average FTNC scenario, when demand is 5
-2022-05-10 18:48:55,048 - INFO - Average FTNC scenario complete, when demand is 5
-2022-05-10 18:48:55,048 - INFO - Finally...
-2022-05-10 18:48:55,048 - INFO - Execution time of average FTNC when demand is 5 is 2594560.8942
-2022-05-10 18:48:55,048 - INFO - End
-2022-05-10 18:48:55,048 - INFO - Try average FTNC scenario, when demand is 10
-2022-05-10 21:22:12,680 - INFO - Average FTNC scenario complete, when demand is 10
-2022-05-10 21:22:12,681 - INFO - Finally...
-2022-05-10 21:22:12,681 - INFO - Execution time of average FTNC when demand is 10 is 11792193.7445
-2022-05-10 21:22:12,681 - INFO - End
-2022-05-10 21:22:12,681 - INFO - Try average FTNC scenario, when demand is 15
-2022-05-11 16:37:03,063 - INFO - Average FTNC scenario complete, when demand is 15
-2022-05-11 16:37:03,063 - INFO - Finally...
-2022-05-11 16:37:03,063 - INFO - Execution time of average FTNC when demand is 15 is 81081534.80739999
-2022-05-11 16:37:03,063 - INFO - End
-2022-05-11 16:37:03,063 - INFO - Try average FTNC scenario, when demand is 20
-2022-05-12 21:49:03,255 - INFO - [计算出错了] x = 1 / 0
+2022-05-12 22:25:21,269 - INFO - Try no control scenario...
+2022-05-12 22:25:28,199 - INFO - [计算出错了] x = 1 / 0
 Traceback (most recent call last):
-  File "D:/Learn/ZCPaper/Collaborative Freight Transport/Model1/test.py", line 277, in <module>
+  File "D:/Learn/ZCPaper/Collaborative Freight Transport/Model1/test.py", line 265, in <module>
     x = 1 / 0
 ZeroDivisionError: division by zero
-2022-05-12 21:50:33,748 - INFO - [计算出错了] x = 1 / 0
-Traceback (most recent call last):
-  File "D:/Learn/ZCPaper/Collaborative Freight Transport/Model1/test.py", line 277, in <module>
-    x = 1 / 0
-ZeroDivisionError: division by zero
-2022-05-12 21:53:25,630 - INFO - [计算出错了] x = 1 / 0
-Traceback (most recent call last):
-  File "D:/Learn/ZCPaper/Collaborative Freight Transport/Model1/test.py", line 277, in <module>
-    x = 1 / 0
-ZeroDivisionError: division by zero
-2022-05-12 21:54:11,013 - INFO - [计算出错了] x = 1 / 0
-Traceback (most recent call last):
-  File "D:/Learn/ZCPaper/Collaborative Freight Transport/Model1/test.py", line 277, in <module>
-    x = 1 / 0
-ZeroDivisionError: division by zero
-2022-05-12 21:56:17,877 - INFO - [计算出错了] x = 1 / 0
-Traceback (most recent call last):
-  File "D:/Learn/ZCPaper/Collaborative Freight Transport/Model1/test.py", line 277, in <module>
-    x = 1 / 0
-ZeroDivisionError: division by zero
+2022-05-12 22:26:03,023 - INFO - Try no control scenario...
+2022-05-12 22:26:05,754 - INFO - No control scenario complete!
+2022-05-12 22:26:06,516 - INFO - Finally...
+2022-05-12 22:26:07,323 - INFO - Execution time of no control: 3493.2977
+2022-05-12 22:26:07,866 - INFO - End
+2022-05-12 22:26:08,170 - INFO - Try holding control scenario...
