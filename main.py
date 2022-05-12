@@ -6,6 +6,7 @@ import CollaborativeScenario_holding as ch
 import logging
 from logging.handlers import RotatingFileHandler
 from logging.handlers import SMTPHandler
+import logging.config
 import time
 #import datetime
 import traceback
@@ -46,17 +47,19 @@ if __name__=="__main__":
     '''
 
     #logging.basicConfig(filename='log.txt', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
-    logger=logging.getLogger('my_logger')
-    logger.setLevel(logging.DEBUG)
-    handler=RotatingFileHandler(filename='./Log/log.txt',maxBytes=1024*1024*20,backupCount=10)
-    handler.setLevel(logging.DEBUG)
-    formatter=logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-    sh = SMTPHandler(('smtp.office365.com', 25), 'username', ["ZHOU0329@e.ntu.edu.sg"], "Model1 INFO",credentials=('username', "password"), secure=())
-    sh.setLevel(logging.DEBUG)
-    sh.setFormatter(formatter)
-    logger.addHandler(sh)
+    logging.config.fileConfig("logging.conf")
+    logger = logging.getLogger('mylogger')
+    #logger=logging.getLogger('my_logger')
+    #logger.setLevel(logging.DEBUG)
+    #handler=RotatingFileHandler(filename='./Log/log.txt',maxBytes=1024*1024*20,backupCount=10)
+    #handler.setLevel(logging.DEBUG)
+    #formatter=logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    #handler.setFormatter(formatter)
+    #logger.addHandler(handler)
+    #sh = SMTPHandler(('smtp.office365.com', 25), 'username', ["ZHOU0329@e.ntu.edu.sg"], "Model1 INFO",credentials=('username', "password"), secure=())
+    #sh.setLevel(logging.DEBUG)
+    #sh.setFormatter(formatter)
+    #logger.addHandler(sh)
 
     total_time=[]
     # no control scenario

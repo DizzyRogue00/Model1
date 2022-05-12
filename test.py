@@ -205,7 +205,7 @@ import sys
 from logging.handlers import SMTPHandler
 import time
 
-
+'''
 class CompatibleSMTPSSLHandler(SMTPHandler):
    def emit(self, record):
         """
@@ -244,19 +244,23 @@ class CompatibleSMTPSSLHandler(SMTPHandler):
 logger = logging.getLogger('my_logger')
 logger.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-#sh=CompatibleSMTPSSLHandler('smtp-mail.outlook.com','zhouchang_00@163.com',("ZHOU0329@e.ntu.edu.sg"),"Model1 INFO",credentials=('zhouchang_00@163.com',"jluulgusrccztons"))
-#sh=SMTPHandler(('smtp.office365.com',587),'ZHOU0329@E.NTU.EDU.SG',["ZHOU0329@e.ntu.edu.sg"],"Model1 INFO",credentials=('zhouchang_00@163.com',"jluulgusrccztons"),secure=())
-#sh=SMTPHandler(('smtp.office365.com',25),'ZHOU0329@E.NTU.EDU.SG',["ZHOU0329@e.ntu.edu.sg"],"Model1 INFO",credentials=('ZHOU0329@e.ntu.edu.sg',"Dshfermzhch1234567890"),secure=())
-#sh=CompatibleSMTPSSLHandler(('smtp.office365.com',25),'ZHOU0329@e.ntu.edu.sg',["ZHOU0329@e.ntu.edu.sg"],"Model1 INFO",credentials=('ZHOU0329@e.ntu.edu.sg',"Dshfermzhch1234567890"),secure=())
-##sh=SMTPHandler(('smtp.office365.com',587),'ZHOU0329@E.NTU.EDU.SG',["ZHOU0329@e.ntu.edu.sg"],"Model1 INFO",credentials=('ZHOU0329@e.ntu.edu.sg',"Dshfermzhch1234567890"))
-sh=SMTPHandler(('smtp.office365.com',25),'ZHOU0329@E.NTU.EDU.SG',["ZHOU0329@e.ntu.edu.sg"],"Model1 INFO",credentials=('ZHOU0329@e.ntu.edu.sg',"Dshfermzhch1234567890"),secure=())
-##sh=SMTPHandler(('smtp.office365.com',587),'ZHOU0329@E.NTU.EDU.SG',["ZHOU0329@e.ntu.edu.sg"],"Model1 INFO",credentials=('ZHOU0329@e.ntu.edu.sg',"Dshfermzhch1234567890"))
-##sh=SMTPHandler(('smtp.office365.com',587),'ZHOU0329@E.NTU.EDU.SG',["ZHOU0329@e.ntu.edu.sg"],"Model1 INFO",credentials=('ZHOU0329@e.ntu.edu.sg',"Dshfermzhch1234567890"),secure=())
 sh.setLevel(logging.DEBUG)
 sh.setFormatter(formatter)
 logger.addHandler(sh)
 
 logger.info('Hello world！')
+try:
+    x = 1 / 0
+except Exception:
+    logger.info('[计算出错了] x = 1 / 0', exc_info=sys.exc_info())
+    print("END")
+'''
+import logging
+import logging.config
+from logging.handlers import SMTPHandler
+from logging.handlers import RotatingFileHandler
+logging.config.fileConfig("logging.conf")
+logger = logging.getLogger('mylogger')
 try:
     x = 1 / 0
 except Exception:

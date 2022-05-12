@@ -30,3 +30,28 @@
 2022-05-11 16:37:03,063 - INFO - Execution time of average FTNC when demand is 15 is 81081534.80739999
 2022-05-11 16:37:03,063 - INFO - End
 2022-05-11 16:37:03,063 - INFO - Try average FTNC scenario, when demand is 20
+2022-05-12 21:49:03,255 - INFO - [计算出错了] x = 1 / 0
+Traceback (most recent call last):
+  File "D:/Learn/ZCPaper/Collaborative Freight Transport/Model1/test.py", line 277, in <module>
+    x = 1 / 0
+ZeroDivisionError: division by zero
+2022-05-12 21:50:33,748 - INFO - [计算出错了] x = 1 / 0
+Traceback (most recent call last):
+  File "D:/Learn/ZCPaper/Collaborative Freight Transport/Model1/test.py", line 277, in <module>
+    x = 1 / 0
+ZeroDivisionError: division by zero
+2022-05-12 21:53:25,630 - INFO - [计算出错了] x = 1 / 0
+Traceback (most recent call last):
+  File "D:/Learn/ZCPaper/Collaborative Freight Transport/Model1/test.py", line 277, in <module>
+    x = 1 / 0
+ZeroDivisionError: division by zero
+2022-05-12 21:54:11,013 - INFO - [计算出错了] x = 1 / 0
+Traceback (most recent call last):
+  File "D:/Learn/ZCPaper/Collaborative Freight Transport/Model1/test.py", line 277, in <module>
+    x = 1 / 0
+ZeroDivisionError: division by zero
+2022-05-12 21:56:17,877 - INFO - [计算出错了] x = 1 / 0
+Traceback (most recent call last):
+  File "D:/Learn/ZCPaper/Collaborative Freight Transport/Model1/test.py", line 277, in <module>
+    x = 1 / 0
+ZeroDivisionError: division by zero
