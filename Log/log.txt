@@ -1,1 +1,32 @@
 
+2022-05-10 17:37:50,992 - INFO - Try no control scenario...
+2022-05-10 17:37:52,895 - INFO - No control scenario complete!
+2022-05-10 17:37:52,895 - INFO - Finally...
+2022-05-10 17:37:52,895 - INFO - Execution time of no control: 1903.194
+2022-05-10 17:37:52,895 - INFO - End
+2022-05-10 17:37:52,895 - INFO - Try holding control scenario...
+2022-05-10 17:42:54,992 - INFO - Holding control scenario complete!
+2022-05-10 17:42:54,992 - INFO - Finally...
+2022-05-10 17:42:54,992 - INFO - Execution time of holding control: 302096.885
+2022-05-10 17:42:54,992 - INFO - End
+2022-05-10 17:42:54,993 - INFO - Try FTNC scenario...
+2022-05-10 18:05:40,487 - INFO - FTNC scenario complete!
+2022-05-10 18:05:40,487 - INFO - Finally...
+2022-05-10 18:05:40,487 - INFO - Execution time of FTNC: 1365494.1635
+2022-05-10 18:05:40,488 - INFO - End
+2022-05-10 18:05:40,488 - INFO - Try average FTNC scenario, when demand is 5
+2022-05-10 18:48:55,048 - INFO - Average FTNC scenario complete, when demand is 5
+2022-05-10 18:48:55,048 - INFO - Finally...
+2022-05-10 18:48:55,048 - INFO - Execution time of average FTNC when demand is 5 is 2594560.8942
+2022-05-10 18:48:55,048 - INFO - End
+2022-05-10 18:48:55,048 - INFO - Try average FTNC scenario, when demand is 10
+2022-05-10 21:22:12,680 - INFO - Average FTNC scenario complete, when demand is 10
+2022-05-10 21:22:12,681 - INFO - Finally...
+2022-05-10 21:22:12,681 - INFO - Execution time of average FTNC when demand is 10 is 11792193.7445
+2022-05-10 21:22:12,681 - INFO - End
+2022-05-10 21:22:12,681 - INFO - Try average FTNC scenario, when demand is 15
+2022-05-11 16:37:03,063 - INFO - Average FTNC scenario complete, when demand is 15
+2022-05-11 16:37:03,063 - INFO - Finally...
+2022-05-11 16:37:03,063 - INFO - Execution time of average FTNC when demand is 15 is 81081534.80739999
+2022-05-11 16:37:03,063 - INFO - End
+2022-05-11 16:37:03,063 - INFO - Try average FTNC scenario, when demand is 20

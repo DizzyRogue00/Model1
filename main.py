@@ -47,7 +47,7 @@ if __name__=="__main__":
     #logging.basicConfig(filename='log.txt', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
     logger=logging.getLogger('my_logger')
     logger.setLevel(logging.DEBUG)
-    handler=RotatingFileHandler(filename='./Log/log.txt',maxBytes=1024*1024*20,backupCount=100)
+    handler=RotatingFileHandler(filename='./Log/log.txt',maxBytes=1024*1024*20,backupCount=10)
     handler.setLevel(logging.DEBUG)
     formatter=logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
     handler.setFormatter(formatter)
