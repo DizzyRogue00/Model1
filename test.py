@@ -161,28 +161,26 @@ print('程序运行时间:%s' % (end_time-start_time).microseconds)#micro second
 print('程序运行时间:%s' % ((end-start)*1000))#ms
 '''
 
+'''
 class Student():
     def __init__(self,grade=2):
 
         #OK
         self._grade=grade
         self._score=self.grade*35
-
-        '''
+   
         #OK
-        self._grade=grade
-        self._score=self._grade*35
-        '''
-
-        '''
+        #self._grade=grade
+        #self._score=self._grade*35
+        
         #Error
-        self._score=self._grade*35
-        self._grade=grade       
-        '''
-        '''
-        self._score=self.grade*35
-        self._grade=grade
-        '''
+        #self._score=self._grade*35
+        #self._grade=grade       
+
+
+        #self._score=self.grade*35
+        #self._grade=grade
+
 
     @property
     def score(self):
@@ -197,3 +195,70 @@ class Student():
     @grade.setter
     def grade(self,value):
         self._grade=value
+'''
+#logging to email
+import logging
+import logging.handlers
+
+import logging
+import sys
+from logging.handlers import SMTPHandler
+import time
+
+
+class CompatibleSMTPSSLHandler(SMTPHandler):
+   def emit(self, record):
+        """
+        Emit a record.
+        Format the record and send it to the specified addressees.
+        """
+        try:
+            import smtplib
+            from email.message import EmailMessage
+            import email.utils
+
+            port = self.mailport
+            #print(port)
+            if not port:
+                port = smtplib.SMTP_PORT
+            #smtp = smtplib.SMTP_SSL(self.mailhost, port)
+            smtp = smtplib.SMTP(self.mailhost, port)
+            msg = EmailMessage()
+            msg['From'] = self.fromaddr
+            msg['To'] = ','.join(self.toaddrs)
+            msg['Subject'] = self.getSubject(record)
+            msg['Date'] = email.utils.localtime()
+            msg.set_content(self.format(record))
+            if self.username:
+                if self.secure is not None:
+                    smtp.ehlo()
+                    smtp.starttls(*self.secure)
+                    #smtp.ehlo()
+                smtp.login(self.username, self.password)
+            smtp.send_message(msg)
+            #smtp.sendmail(self.fromaddr,self.toaddrs,msg)
+            smtp.quit()
+        except Exception:
+            self.handleError(record)
+
+logger = logging.getLogger('my_logger')
+logger.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+#sh=CompatibleSMTPSSLHandler('smtp-mail.outlook.com','zhouchang_00@163.com',("ZHOU0329@e.ntu.edu.sg"),"Model1 INFO",credentials=('zhouchang_00@163.com',"jluulgusrccztons"))
+#sh=SMTPHandler(('smtp.office365.com',587),'ZHOU0329@E.NTU.EDU.SG',["ZHOU0329@e.ntu.edu.sg"],"Model1 INFO",credentials=('zhouchang_00@163.com',"jluulgusrccztons"),secure=())
+#sh=SMTPHandler(('smtp.office365.com',25),'ZHOU0329@E.NTU.EDU.SG',["ZHOU0329@e.ntu.edu.sg"],"Model1 INFO",credentials=('ZHOU0329@e.ntu.edu.sg',"Dshfermzhch1234567890"),secure=())
+#sh=CompatibleSMTPSSLHandler(('smtp.office365.com',25),'ZHOU0329@e.ntu.edu.sg',["ZHOU0329@e.ntu.edu.sg"],"Model1 INFO",credentials=('ZHOU0329@e.ntu.edu.sg',"Dshfermzhch1234567890"),secure=())
+##sh=SMTPHandler(('smtp.office365.com',587),'ZHOU0329@E.NTU.EDU.SG',["ZHOU0329@e.ntu.edu.sg"],"Model1 INFO",credentials=('ZHOU0329@e.ntu.edu.sg',"Dshfermzhch1234567890"))
+sh=SMTPHandler(('smtp.office365.com',25),'ZHOU0329@E.NTU.EDU.SG',["ZHOU0329@e.ntu.edu.sg"],"Model1 INFO",credentials=('ZHOU0329@e.ntu.edu.sg',"Dshfermzhch1234567890"),secure=())
+##sh=SMTPHandler(('smtp.office365.com',587),'ZHOU0329@E.NTU.EDU.SG',["ZHOU0329@e.ntu.edu.sg"],"Model1 INFO",credentials=('ZHOU0329@e.ntu.edu.sg',"Dshfermzhch1234567890"))
+##sh=SMTPHandler(('smtp.office365.com',587),'ZHOU0329@E.NTU.EDU.SG',["ZHOU0329@e.ntu.edu.sg"],"Model1 INFO",credentials=('ZHOU0329@e.ntu.edu.sg',"Dshfermzhch1234567890"),secure=())
+sh.setLevel(logging.DEBUG)
+sh.setFormatter(formatter)
+logger.addHandler(sh)
+
+logger.info('Hello world！')
+try:
+    x = 1 / 0
+except Exception:
+    logger.info('[计算出错了] x = 1 / 0', exc_info=sys.exc_info())
+    print("END")

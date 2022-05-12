@@ -5,6 +5,7 @@ import CollaborativeScenario as c
 import CollaborativeScenario_holding as ch
 import logging
 from logging.handlers import RotatingFileHandler
+from logging.handlers import SMTPHandler
 import time
 #import datetime
 import traceback
@@ -52,6 +53,10 @@ if __name__=="__main__":
     formatter=logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
     handler.setFormatter(formatter)
     logger.addHandler(handler)
+    sh = SMTPHandler(('smtp.office365.com', 25), 'username', ["ZHOU0329@e.ntu.edu.sg"], "Model1 INFO",credentials=('username', "password"), secure=())
+    sh.setLevel(logging.DEBUG)
+    sh.setFormatter(formatter)
+    logger.addHandler(sh)
 
     total_time=[]
     # no control scenario
@@ -303,6 +308,7 @@ if __name__=="__main__":
     print('Average execution time of FTHC: ',exec_avg_time_FTHC)
     final_total_time=reduce(operator.add,total_time)
     print('Overall execution time is ', final_total_time)
+
 
 
 
