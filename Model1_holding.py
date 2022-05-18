@@ -633,7 +633,8 @@ class Model1(object):
         data_in_vehicle=pd.DataFrame(data_in_vehicle,index=range(1,self.N+2))
         #print(data_in_vehicle.head())
         print(data_in_vehicle)
-        #plt.figure(num=2, facecolor='white', edgecolor='black')
+        #plt.figure(num=6, facecolor='white', edgecolor='black')
+        plt.figure(facecolor='white', edgecolor='black')
         markers_ZC=[".","^","1","s","*","+","x","D"]
         linestyle=['-','--','-.',':']*2
         color = ['#7B113A', "#150E56", "#1597BB", "#8FD6E1", "#E02401", "#F78812", "#Ab6D23", "#51050F"]
@@ -680,7 +681,8 @@ class Model1(object):
         bar_tick_label=list(map(lambda x:str(x),bar_x))
         colors = [plt.cm.Spectral(i / float(2 - 1)) for i in range(2)]
         #colors=['#8E354A','#261E47']
-        plt.figure(num=7, facecolor='white', edgecolor='black')
+        #plt.figure(num=7, facecolor='white', edgecolor='black')
+        plt.figure(facecolor='white', edgecolor='black')
         plt.rcParams['font.family']='serif'
         plt.rcParams['font.serif']='Times New Roman'
         for i,df in data_b:
@@ -718,7 +720,8 @@ class Model1(object):
         #colors = [plt.cm.Spectral(i / float(2 - 1)) for i in range(2)]
         colors=['#9F353A','#66327C']
         #print(data_b_average)
-        plt.figure(num=8, facecolor='white', edgecolor='black')
+        #plt.figure(num=8, facecolor='white', edgecolor='black')
+        plt.figure(facecolor='white', edgecolor='black')
         plt.rcParams['font.family']='serif'
         plt.rcParams['font.serif']='Times New Roman'
         plt.bar(data_b_average.index,data_b_average['Boarding'],width=bar_width,align='center',color=colors[0])
@@ -760,7 +763,8 @@ class Model1(object):
         data_trajectory['Stop']=temp_list
         print(data_trajectory)
         #print(type(data_trajectory))
-        plt.figure(num=9, facecolor='white', edgecolor='black')
+        #plt.figure(num=9, facecolor='white', edgecolor='black')
+        plt.figure(facecolor='white', edgecolor='black')
         plt.rcParams['font.family']='serif'
         plt.rcParams['font.serif']='Times New Roman'
         colors=[plt.cm.get_cmap('tab20b')(i/float(self.M-1)) for i in range(self.M)]

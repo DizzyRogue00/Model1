@@ -10,3 +10,34 @@ ZeroDivisionError: division by zero
 2022-05-12 22:26:07,323 - INFO - Execution time of no control: 3493.2977
 2022-05-12 22:26:07,866 - INFO - End
 2022-05-12 22:26:08,170 - INFO - Try holding control scenario...
+2022-05-12 22:33:09,742 - INFO - Try no control scenario...
+2022-05-12 22:33:12,543 - INFO - No control scenario complete!
+2022-05-12 22:33:13,281 - INFO - Finally...
+2022-05-12 22:33:13,839 - INFO - Execution time of no control: 3539.2516
+2022-05-12 22:33:14,419 - INFO - End
+2022-05-12 22:33:15,422 - INFO - Try holding control scenario...
+2022-05-12 23:16:02,773 - INFO - Holding control scenario complete!
+2022-05-12 23:16:03,596 - INFO - Finally...
+2022-05-12 23:16:03,990 - INFO - Execution time of holding control: 2568174.5261999997
+2022-05-12 23:16:04,677 - INFO - End
+2022-05-12 23:16:05,175 - INFO - Try FTNC scenario...
+2022-05-12 23:37:41,380 - INFO - FTNC scenario complete!
+2022-05-12 23:37:42,041 - INFO - Finally...
+2022-05-12 23:37:42,805 - INFO - Execution time of FTNC: 1296866.268
+2022-05-12 23:37:43,168 - INFO - End
+2022-05-12 23:37:44,041 - INFO - Try average FTNC scenario, when demand is 5
+2022-05-13 00:59:03,533 - INFO - Average FTNC scenario complete, when demand is 5
+2022-05-13 00:59:04,606 - INFO - Finally...
+2022-05-13 00:59:05,032 - INFO - Execution time of average FTNC when demand is 5 is 4880564.6603999995
+2022-05-13 00:59:05,705 - INFO - End
+2022-05-13 00:59:06,409 - INFO - Try average FTNC scenario, when demand is 10
+2022-05-13 02:50:07,957 - INFO - Average FTNC scenario complete, when demand is 10
+2022-05-13 02:50:08,832 - INFO - Finally...
+2022-05-13 02:50:09,344 - INFO - Execution time of average FTNC when demand is 10 is 11544790.5357
+2022-05-13 02:50:09,759 - INFO - End
+2022-05-13 02:50:10,507 - INFO - Try average FTNC scenario, when demand is 15
+2022-05-14 17:14:25,347 - INFO - Average FTNC scenario complete, when demand is 15
+2022-05-14 17:14:26,164 - INFO - Finally...
+2022-05-14 17:14:27,197 - INFO - Execution time of average FTNC when demand is 15 is 149800112.5142
+2022-05-14 17:14:27,986 - INFO - End
+2022-05-14 17:14:28,961 - INFO - Try average FTNC scenario, when demand is 20

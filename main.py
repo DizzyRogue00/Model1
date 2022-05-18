@@ -214,7 +214,7 @@ if __name__=="__main__":
     with open('Process.txt','a') as file:
         file.write('Execution time of average FTNC is {}\n'.format(exec_avg_time_FTNC))
         file.write('Total execution time of average FTNC is {}\n'.format(total_avg_FTNC))
-    total_time.extend(total_avg_FTNC)
+    total_time.extend([total_avg_FTNC])
 
     # FTHC scenario
     t_start_FTHC = time.perf_counter_ns()
@@ -304,7 +304,7 @@ if __name__=="__main__":
     with open('Process.txt','a') as file:
         file.write('Execution time of average FTHC is {}\n'.format(exec_avg_time_FTHC))
         file.write('Total execution time of average FTHC is {}\n'.format(total_avg_FTHC))
-    total_time.extend(total_avg_FTHC)
+    total_time.extend([total_avg_FTHC])
 
     print('Total time: ',total_time)
     print('Average execution time of FTNC: ',exec_avg_time_FTNC)

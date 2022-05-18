@@ -36,3 +36,22 @@ Try no control scenario...
 No control scenario complete!
 Execution time of no control: 3493.2977 
 Try holding control scenario...
+Try no control scenario...
+No control scenario complete!
+Execution time of no control: 3539.2516 
+Try holding control scenario...
+Holding control scenario complete!
+Execution time of holding control: 2568174.5261999997
+Try FTNC scenario...
+FTNC scenario complete!
+Execution time of FTNC: 1296866.268
+Try average FTNC scenario, when demand is 5
+Average FTNC scenario complete, when demand is 5
+Execution time of average FTNC when demand is 5 is 4880564.6603999995
+Try average FTNC scenario, when demand is 10
+Average FTNC scenario complete, when demand is 10
+Execution time of average FTNC when demand is 10 is 11544790.5357
+Try average FTNC scenario, when demand is 15
+Average FTNC scenario complete, when demand is 15
+Execution time of average FTNC when demand is 15 is 149800112.5142
+Try average FTNC scenario, when demand is 20
