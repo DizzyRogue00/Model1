@@ -606,7 +606,7 @@ class Collaborative(object):
                 #print(df)
                 print(n,item)
                 with open('./Log/ProcessLog.txt','a') as file:
-                    file.write('Bus No.{} and the already loading item {}'.format(n,item))
+                    file.write('Bus No.{} and the already loading item {}\n'.format(n,item))
                 cal_database_item(database,df,n,item)
 
         self.database=database
