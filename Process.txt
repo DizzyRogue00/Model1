@@ -75,3 +75,23 @@ Try average FTNC scenario, when demand is 15
 Execution time of average FTNC when demand is 15 is 25751.1354
 Try average FTNC scenario, when demand is 20
 Try FTNC scenario...
+Try no control scenario...
+No control scenario complete!
+Execution time of no control: 3040.8073 
+Try holding control scenario...
+Holding control scenario complete!
+Execution time of holding control: 3604869.4834000003
+Try FTNC scenario...
+Execution time of FTNC: 31149.367899999997
+Try average FTNC scenario, when demand is 5
+Execution time of average FTNC when demand is 5 is 4564.428900000001
+Try average FTNC scenario, when demand is 10
+Execution time of average FTNC when demand is 10 is 10491.2795
+Try average FTNC scenario, when demand is 15
+Execution time of average FTNC when demand is 15 is 17787.435100000002
+Try average FTNC scenario, when demand is 20
+Execution time of average FTNC when demand is 20 is 96018.685
+Execution time of average FTNC is [4564.428900000001, 5926.8506, 7296.155600000002, 78231.2499]
+Total execution time of average FTNC is 96018.685
+Try FTHC scenario...
+Try FTNC scenario...

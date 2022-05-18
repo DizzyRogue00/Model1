@@ -580,26 +580,25 @@ class Collaborative(object):
                                         result_item={key:value}
                                         df.loc[n][item]=summation
                                         database.update(result_item)
-
-        for n in range(1,self.M+1):
-            df.loc[n]=inf
-            for item in column_name:
-                key = tuple(list(item) + [n])
-                if n==1:
-                    value = {'previous': 0, 'current_result': inf}
-                else:
-                    previous_key=tuple(list(item)+[n-1])
-                    value={'previous':previous_key,'current_result':inf}
-                result_item={key:value}
-                database.update(result_item)
-                #print(n)
-                #print(item)
-                #print(database)
-                #print(df)
-                print(n,item)
-                with open('./Log/ProcessLog.txt','a') as file:
-                    file.write('Bus No.{} and the already loading item {}\n'.format(n,item))
-                cal_database_item(database,df,n,item)
+        with open('./Log/ProcessLog.txt','a') as file:
+            for n in range(1,self.M+1):
+                df.loc[n]=inf
+                for item in column_name:
+                    key = tuple(list(item) + [n])
+                    if n==1:
+                        value = {'previous': 0, 'current_result': inf}
+                    else:
+                        previous_key=tuple(list(item)+[n-1])
+                        value={'previous':previous_key,'current_result':inf}
+                    result_item={key:value}
+                    database.update(result_item)
+                    #print(n)
+                    #print(item)
+                    #print(database)
+                    #print(df)
+                    print(n,item)
+                    cal_database_item(database,df,n,item)
+                file.write('Bus No.{} finished\n'.format(n))
 
         self.database=database
         self.df=df

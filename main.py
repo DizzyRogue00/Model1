@@ -49,6 +49,7 @@ if __name__=="__main__":
     #logging.basicConfig(filename='log.txt', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
     logging.config.fileConfig("logging.conf")
     logger = logging.getLogger('mylogger')
+    #demand_list = [5, 10, 15, 20]
     #logger=logging.getLogger('my_logger')
     #logger.setLevel(logging.DEBUG)
     #handler=RotatingFileHandler(filename='./Log/log.txt',maxBytes=1024*1024*20,backupCount=10)
@@ -62,6 +63,7 @@ if __name__=="__main__":
     #logger.addHandler(sh)
 
     total_time=[]
+
     # no control scenario
     t_start_no_control = time.perf_counter_ns()
     try:
@@ -125,7 +127,6 @@ if __name__=="__main__":
         logger.info('End')
 
     demand_list = [5, 10, 15, 20]
-
     # FTNC scenario
     t_start_FTNC=time.perf_counter_ns()
     try:
@@ -311,6 +312,7 @@ if __name__=="__main__":
     print('Average execution time of FTHC: ',exec_avg_time_FTHC)
     final_total_time=reduce(operator.add,total_time)
     print('Overall execution time is ', final_total_time)
+
 
 
 

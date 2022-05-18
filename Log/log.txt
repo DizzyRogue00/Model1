@@ -127,3 +127,103 @@ PermissionError: [Errno 13] Permission denied: './Log/ProcessLog.txt'
 2022-05-18 15:17:52,956 - INFO - End
 2022-05-18 15:17:53,449 - INFO - Try average FTNC scenario, when demand is 20
 2022-05-18 15:29:39,456 - INFO - Try FTNC scenario...
+2022-05-18 15:38:09,386 - INFO - Try no control scenario...
+2022-05-18 15:38:11,946 - INFO - No control scenario complete!
+2022-05-18 15:38:12,427 - INFO - Finally...
+2022-05-18 15:38:13,028 - INFO - Execution time of no control: 3040.8073
+2022-05-18 15:38:13,600 - INFO - End
+2022-05-18 15:38:14,494 - INFO - Try holding control scenario...
+2022-05-18 16:38:18,022 - INFO - Holding control scenario complete!
+2022-05-18 16:38:19,364 - INFO - Finally...
+2022-05-18 16:38:19,735 - INFO - Execution time of holding control: 3604869.4834000003
+2022-05-18 16:38:20,380 - INFO - End
+2022-05-18 16:38:21,786 - INFO - Try FTNC scenario...
+2022-05-18 16:38:51,949 - DEBUG - Except: [Errno 13] Permission denied: './Log/ProcessLog.txt'
+2022-05-18 16:38:52,354 - DEBUG - Traceback (most recent call last):
+  File "D:/Learn/ZCPaper/Collaborative Freight Transport/Model1/main.py", line 137, in <module>
+    FTNC.Analysis()
+  File "D:\Learn\ZCPaper\Collaborative Freight Transport\Model1\CollaborativeScenario.py", line 674, in Analysis
+    self.dynamic_programming()
+  File "D:\Learn\ZCPaper\Collaborative Freight Transport\Model1\CollaborativeScenario.py", line 600, in dynamic_programming
+    with open('./Log/ProcessLog.txt','a') as file:
+PermissionError: [Errno 13] Permission denied: './Log/ProcessLog.txt'
+
+2022-05-18 16:38:52,934 - INFO - Finally...
+2022-05-18 16:38:53,743 - INFO - Execution time of FTNC: 31149.367899999997
+2022-05-18 16:38:54,882 - INFO - End
+2022-05-18 16:38:55,597 - INFO - Try average FTNC scenario, when demand is 5
+2022-05-18 16:38:58,352 - INFO - Except: [Errno 13] Permission denied: './Log/ProcessLog.txt'
+2022-05-18 16:38:59,231 - DEBUG - Traceback (most recent call last):
+  File "D:/Learn/ZCPaper/Collaborative Freight Transport/Model1/main.py", line 169, in cal_exec_time
+    object.Average_Analysis()
+  File "D:\Learn\ZCPaper\Collaborative Freight Transport\Model1\CollaborativeScenario.py", line 907, in Average_Analysis
+    final_data_result=[item_process() for i in range(repeat_time)]
+  File "D:\Learn\ZCPaper\Collaborative Freight Transport\Model1\CollaborativeScenario.py", line 907, in <listcomp>
+    final_data_result=[item_process() for i in range(repeat_time)]
+  File "D:\Learn\ZCPaper\Collaborative Freight Transport\Model1\CollaborativeScenario.py", line 904, in item_process
+    self.dynamic_programming()
+  File "D:\Learn\ZCPaper\Collaborative Freight Transport\Model1\CollaborativeScenario.py", line 600, in dynamic_programming
+    with open('./Log/ProcessLog.txt','a') as file:
+PermissionError: [Errno 13] Permission denied: './Log/ProcessLog.txt'
+
+2022-05-18 16:39:00,160 - INFO - Finally...
+2022-05-18 16:39:00,568 - INFO - Execution time of average FTNC when demand is 5 is 4564.428900000001
+2022-05-18 16:39:01,293 - INFO - End
+2022-05-18 16:39:02,195 - INFO - Try average FTNC scenario, when demand is 10
+2022-05-18 16:39:04,747 - INFO - Except: [Errno 13] Permission denied: './Log/ProcessLog.txt'
+2022-05-18 16:39:05,529 - DEBUG - Traceback (most recent call last):
+  File "D:/Learn/ZCPaper/Collaborative Freight Transport/Model1/main.py", line 169, in cal_exec_time
+    object.Average_Analysis()
+  File "D:\Learn\ZCPaper\Collaborative Freight Transport\Model1\CollaborativeScenario.py", line 907, in Average_Analysis
+    final_data_result=[item_process() for i in range(repeat_time)]
+  File "D:\Learn\ZCPaper\Collaborative Freight Transport\Model1\CollaborativeScenario.py", line 907, in <listcomp>
+    final_data_result=[item_process() for i in range(repeat_time)]
+  File "D:\Learn\ZCPaper\Collaborative Freight Transport\Model1\CollaborativeScenario.py", line 904, in item_process
+    self.dynamic_programming()
+  File "D:\Learn\ZCPaper\Collaborative Freight Transport\Model1\CollaborativeScenario.py", line 600, in dynamic_programming
+    with open('./Log/ProcessLog.txt','a') as file:
+PermissionError: [Errno 13] Permission denied: './Log/ProcessLog.txt'
+
+2022-05-18 16:39:06,087 - INFO - Finally...
+2022-05-18 16:39:06,470 - INFO - Execution time of average FTNC when demand is 10 is 10491.2795
+2022-05-18 16:39:07,068 - INFO - End
+2022-05-18 16:39:07,867 - INFO - Try average FTNC scenario, when demand is 15
+2022-05-18 16:39:11,370 - INFO - Except: [Errno 13] Permission denied: './Log/ProcessLog.txt'
+2022-05-18 16:39:11,883 - DEBUG - Traceback (most recent call last):
+  File "D:/Learn/ZCPaper/Collaborative Freight Transport/Model1/main.py", line 169, in cal_exec_time
+    object.Average_Analysis()
+  File "D:\Learn\ZCPaper\Collaborative Freight Transport\Model1\CollaborativeScenario.py", line 907, in Average_Analysis
+    final_data_result=[item_process() for i in range(repeat_time)]
+  File "D:\Learn\ZCPaper\Collaborative Freight Transport\Model1\CollaborativeScenario.py", line 907, in <listcomp>
+    final_data_result=[item_process() for i in range(repeat_time)]
+  File "D:\Learn\ZCPaper\Collaborative Freight Transport\Model1\CollaborativeScenario.py", line 904, in item_process
+    self.dynamic_programming()
+  File "D:\Learn\ZCPaper\Collaborative Freight Transport\Model1\CollaborativeScenario.py", line 600, in dynamic_programming
+    with open('./Log/ProcessLog.txt','a') as file:
+PermissionError: [Errno 13] Permission denied: './Log/ProcessLog.txt'
+
+2022-05-18 16:39:13,384 - INFO - Finally...
+2022-05-18 16:39:14,318 - INFO - Execution time of average FTNC when demand is 15 is 17787.435100000002
+2022-05-18 16:39:15,169 - INFO - End
+2022-05-18 16:39:15,685 - INFO - Try average FTNC scenario, when demand is 20
+2022-05-18 16:40:29,100 - INFO - Except: [Errno 13] Permission denied: './Log/ProcessLog.txt'
+2022-05-18 16:40:30,320 - DEBUG - Traceback (most recent call last):
+  File "D:/Learn/ZCPaper/Collaborative Freight Transport/Model1/main.py", line 169, in cal_exec_time
+    object.Average_Analysis()
+  File "D:\Learn\ZCPaper\Collaborative Freight Transport\Model1\CollaborativeScenario.py", line 907, in Average_Analysis
+    final_data_result=[item_process() for i in range(repeat_time)]
+  File "D:\Learn\ZCPaper\Collaborative Freight Transport\Model1\CollaborativeScenario.py", line 907, in <listcomp>
+    final_data_result=[item_process() for i in range(repeat_time)]
+  File "D:\Learn\ZCPaper\Collaborative Freight Transport\Model1\CollaborativeScenario.py", line 904, in item_process
+    self.dynamic_programming()
+  File "D:\Learn\ZCPaper\Collaborative Freight Transport\Model1\CollaborativeScenario.py", line 600, in dynamic_programming
+    with open('./Log/ProcessLog.txt','a') as file:
+PermissionError: [Errno 13] Permission denied: './Log/ProcessLog.txt'
+
+2022-05-18 16:40:31,615 - INFO - Finally...
+2022-05-18 16:40:32,876 - INFO - Execution time of average FTNC when demand is 20 is 96018.685
+2022-05-18 16:40:34,119 - INFO - End
+2022-05-18 16:40:35,776 - INFO - Execution time of average FTNC is [4564.428900000001, 5926.8506, 7296.155600000002, 78231.2499]
+2022-05-18 16:40:36,922 - INFO - Total execution time of average FTNC is 96018.685
+2022-05-18 16:40:37,813 - INFO - Try FTHC scenario...
+2022-05-18 17:42:31,103 - INFO - Try FTNC scenario...
