@@ -597,7 +597,7 @@ class Collaborative(object):
                 #print(database)
                 #print(df)
                 print(n,item)
-                with open('ProcessLog.txt','a') as file:
+                with open('./Log/ProcessLog.txt','a') as file:
                     file.write('Bus No.{} and the already loading item {}'.format(n,item))
                 cal_database_item(database,df,n,item)
 
