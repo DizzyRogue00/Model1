@@ -937,7 +937,7 @@ class Collaborative(object):
         path=pathlib.Path(filedata_result_excel)
         sheet_name="FTHC_Average_Demand"+str(self.demand)
         if path.exists():
-            with pd.ExcelWriter(filedata_result_excel,engine='openpyxl',mode='a') as writer:
+            with pd.ExcelWriter(filedata_result_excel,engine='openpyxl',mode='a',if_sheet_exists='overlay') as writer:
                 data_result.to_excel(writer,sheet_name=sheet_name)
         else:
             with pd.ExcelWriter(filedata_result_excel,engine='openpyxl') as writer:

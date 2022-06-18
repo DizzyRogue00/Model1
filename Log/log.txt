@@ -227,3 +227,93 @@ PermissionError: [Errno 13] Permission denied: './Log/ProcessLog.txt'
 2022-05-18 16:40:36,922 - INFO - Total execution time of average FTNC is 96018.685
 2022-05-18 16:40:37,813 - INFO - Try FTHC scenario...
 2022-05-18 17:42:31,103 - INFO - Try FTNC scenario...
+2022-05-18 17:52:40,886 - INFO - Try no control scenario...
+2022-05-18 17:52:43,515 - INFO - No control scenario complete!
+2022-05-18 17:52:44,249 - INFO - Finally...
+2022-05-18 17:52:45,043 - INFO - Execution time of no control: 3362.6472999999996
+2022-05-18 17:52:46,126 - INFO - End
+2022-05-18 17:52:47,146 - INFO - Try holding control scenario...
+2022-05-18 18:52:50,105 - INFO - Holding control scenario complete!
+2022-05-18 18:52:51,463 - INFO - Finally...
+2022-05-18 18:52:52,581 - INFO - Execution time of holding control: 3604317.6837
+2022-05-18 18:52:52,935 - INFO - End
+2022-05-18 18:52:54,433 - INFO - Try FTNC scenario...
+2022-05-18 19:01:55,636 - INFO - FTNC scenario complete!
+2022-05-18 19:01:56,227 - INFO - Finally...
+2022-05-18 19:01:56,557 - INFO - Execution time of FTNC: 541793.9033
+2022-05-18 19:01:57,597 - INFO - End
+2022-05-18 19:01:58,084 - INFO - Try average FTNC scenario, when demand is 5
+2022-05-18 19:48:22,566 - INFO - Average FTNC scenario complete, when demand is 5
+2022-05-18 19:48:25,595 - INFO - Finally...
+2022-05-18 19:48:26,368 - INFO - Execution time of average FTNC when demand is 5 is 2787511.6448000004
+2022-05-18 19:48:26,887 - INFO - End
+2022-05-18 19:48:27,182 - INFO - Try average FTNC scenario, when demand is 10
+2022-05-18 22:14:04,858 - INFO - Average FTNC scenario complete, when demand is 10
+2022-05-18 22:14:06,169 - INFO - Finally...
+2022-05-18 22:14:07,380 - INFO - Execution time of average FTNC when demand is 10 is 11528084.5363
+2022-05-18 22:14:08,174 - INFO - End
+2022-05-18 22:14:09,324 - INFO - Try average FTNC scenario, when demand is 15
+2022-05-21 13:20:46,972 - INFO - Average FTNC scenario complete, when demand is 15
+2022-05-21 13:20:48,260 - INFO - Finally...
+2022-05-21 13:20:49,164 - INFO - Execution time of average FTNC when demand is 15 is 238726853.1407
+2022-05-21 13:20:49,516 - INFO - End
+2022-05-21 13:20:50,066 - INFO - Try average FTNC scenario, when demand is 20
+2022-05-27 22:33:52,151 - INFO - Average FTNC scenario complete, when demand is 20
+2022-05-27 22:33:53,100 - INFO - Finally...
+2022-05-27 22:33:53,989 - INFO - Execution time of average FTNC when demand is 20 is 790305797.8009
+2022-05-27 22:33:54,350 - INFO - End
+2022-05-27 22:33:54,838 - INFO - Execution time of average FTNC is [2787511.6448000004, 8740572.8915, 227198768.6044, 551578944.6602]
+2022-05-27 22:33:55,369 - INFO - Total execution time of average FTNC is 790305797.8009
+2022-05-27 22:33:55,704 - INFO - Try FTHC scenario...
+2022-05-29 11:12:33,465 - INFO - FTHC scenario complete!
+2022-05-29 11:12:34,588 - INFO - Finally...
+2022-05-29 11:12:35,124 - INFO - Execution time of FTHC: 131917591.54689999
+2022-05-29 11:12:35,749 - INFO - End
+2022-05-29 11:12:36,495 - INFO - Try average FTHC scenario, when demand is 5
+2022-06-02 07:10:44,263 - INFO - Average FTHC scenario complete, when demand is 5
+2022-06-02 07:10:46,212 - INFO - Finally...
+2022-06-02 07:10:46,624 - INFO - Execution time of average FTHC when demand is 5 is 331085435.13670003
+2022-06-02 07:10:47,108 - INFO - End
+2022-06-02 07:10:47,577 - INFO - Try average FTHC scenario, when demand is 10
+2022-06-13 10:07:46,568 - INFO - Average FTHC scenario complete, when demand is 10
+2022-06-13 10:07:47,701 - INFO - Finally...
+2022-06-13 10:07:48,220 - INFO - Execution time of average FTHC when demand is 10 is 1292095799.1808999
+2022-06-13 10:07:49,135 - INFO - End
+2022-06-13 10:07:49,760 - INFO - Try average FTHC scenario, when demand is 15
+2022-06-18 00:13:03,164 - INFO - Except: [Errno 22] Invalid argument
+2022-06-18 00:13:04,973 - DEBUG - Traceback (most recent call last):
+  File "D:/Learn/ZCPaper/Collaborative Freight Transport/Model1/main.py", line 260, in cal_exec_time_FTHC
+    object.Average_Analysis()
+  File "D:\Learn\ZCPaper\Collaborative Freight Transport\Model1\CollaborativeScenario_holding.py", line 915, in Average_Analysis
+    final_data_result=[item_process() for i in range(repeat_time)]
+  File "D:\Learn\ZCPaper\Collaborative Freight Transport\Model1\CollaborativeScenario_holding.py", line 915, in <listcomp>
+    final_data_result=[item_process() for i in range(repeat_time)]
+  File "D:\Learn\ZCPaper\Collaborative Freight Transport\Model1\CollaborativeScenario_holding.py", line 912, in item_process
+    self.dynamic_programming()
+  File "D:\Learn\ZCPaper\Collaborative Freight Transport\Model1\CollaborativeScenario_holding.py", line 609, in dynamic_programming
+    cal_database_item(database,df,n,item)
+  File "D:\Learn\ZCPaper\Collaborative Freight Transport\Model1\CollaborativeScenario_holding.py", line 581, in cal_database_item
+    self.__Optimal(n,previous_key,database,key)
+  File "D:\Learn\ZCPaper\Collaborative Freight Transport\Model1\CollaborativeScenario_holding.py", line 473, in __Optimal
+    print(m.status)
+OSError: [Errno 22] Invalid argument
+
+2022-06-18 00:13:05,494 - INFO - Finally...
+2022-06-18 00:13:06,165 - INFO - Execution time of average FTHC when demand is 15 is 1688411854.2431002
+2022-06-18 00:13:06,643 - INFO - End
+2022-06-18 00:13:07,427 - INFO - Try average FTHC scenario, when demand is 20
+2022-06-18 00:13:07,942 - INFO - Except: [Errno 22] Invalid argument
+2022-06-18 00:13:08,317 - DEBUG - Traceback (most recent call last):
+  File "D:/Learn/ZCPaper/Collaborative Freight Transport/Model1/main.py", line 260, in cal_exec_time_FTHC
+    object.Average_Analysis()
+  File "D:\Learn\ZCPaper\Collaborative Freight Transport\Model1\CollaborativeScenario_holding.py", line 909, in Average_Analysis
+    folder = self.directory('Results_ZC')
+  File "D:\Learn\ZCPaper\Collaborative Freight Transport\Model1\CollaborativeScenario_holding.py", line 630, in directory
+    print("Directory {} has existed".format(name))
+OSError: [Errno 22] Invalid argument
+
+2022-06-18 00:13:09,021 - INFO - Finally...
+2022-06-18 00:13:09,739 - INFO - Execution time of average FTHC when demand is 20 is 1688415382.409
+2022-06-18 00:13:10,380 - INFO - End
+2022-06-18 00:13:11,318 - INFO - Execution time of average FTHC is [331085435.13670003, 961010364.0441998, 396316055.0622003, 3528.1658997535706]
+2022-06-18 00:13:12,021 - INFO - Total execution time of average FTHC is 790305797.8009

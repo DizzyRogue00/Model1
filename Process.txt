@@ -95,3 +95,39 @@ Execution time of average FTNC is [4564.428900000001, 5926.8506, 7296.1556000000
 Total execution time of average FTNC is 96018.685
 Try FTHC scenario...
 Try FTNC scenario...
+Try no control scenario...
+No control scenario complete!
+Execution time of no control: 3362.6472999999996 
+Try holding control scenario...
+Holding control scenario complete!
+Execution time of holding control: 3604317.6837
+Try FTNC scenario...
+FTNC scenario complete!
+Execution time of FTNC: 541793.9033
+Try average FTNC scenario, when demand is 5
+Average FTNC scenario complete, when demand is 5
+Execution time of average FTNC when demand is 5 is 2787511.6448000004
+Try average FTNC scenario, when demand is 10
+Average FTNC scenario complete, when demand is 10
+Execution time of average FTNC when demand is 10 is 11528084.5363
+Try average FTNC scenario, when demand is 15
+Average FTNC scenario complete, when demand is 15
+Execution time of average FTNC when demand is 15 is 238726853.1407
+Try average FTNC scenario, when demand is 20
+Average FTNC scenario complete, when demand is 20
+Execution time of average FTNC when demand is 20 is 790305797.8009
+Execution time of average FTNC is [2787511.6448000004, 8740572.8915, 227198768.6044, 551578944.6602]
+Total execution time of average FTNC is 790305797.8009
+Try FTHC scenario...
+FTHC scenario complete!
+Execution time of FTHC: 131917591.54689999
+Try average FTHC scenario, when demand is 5
+Average FTHC scenario complete, when demand is 5
+Execution time of average FTHC when demand is 5 is 331085435.13670003
+Try average FTHC scenario, when demand is 10
+Average FTHC scenario complete, when demand is 10
+Execution time of average FTHC when demand is 10 is 1292095799.1808999
+Try average FTHC scenario, when demand is 15
+Execution time of average FTHC when demand is 15 is 1688411854.2431002
+Try average FTHC scenario, when demand is 20
+Execution time of average FTHC when demand is 20 is 1688415382.409
